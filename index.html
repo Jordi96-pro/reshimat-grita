@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>רשימת גריטה</title>
+<meta name="theme-color" content="#E4002B">
+<meta name="description" content="איסוף ציוד לגריטה: סריקה, קטלוג דגמים וייצוא לאקסל">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="גריטה">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="config.js?v=4"></script>
+<script src="firebase-adapter.js?v=4"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: friendly field helper, big, calm and obvious; every question asked one at a time.
+   IDEA: a disposal tag clipped to a clipboard: white sticker cards on a soft sheet under a red header.
+   PICTURE: the working form itself: big icon tiles, question cards that tick green when done, a progress bar.
+   COLOUR and TYPE: signal red #E4002B header field, white cards, sunny yellow #FFC93C accent, ink #17171C; Rubik throughout.
+   LAYOUT: header band, then form | list side by side above 900px; on phones one view at a time with a bottom tab bar. */
+:root{color-scheme:light dark;
+ --bg:light-dark(#F4F4F6,#0F0F12);--card:light-dark(#FFFFFF,#1B1B20);--ink:light-dark(#17171C,#F3F3F5);--mute:light-dark(#62626B,#A3A3AD);
+ --line:light-dark(#E3E3E8,#2C2C34);--soft:light-dark(#F6F6F8,#24242B);--red:#E4002B;--redd:light-dark(#C20024,#FF5A72);
+ --yel:#FFC93C;--yels:light-dark(#FFF3CC,#3A3115);--ok:light-dark(#0E8A4A,#4CD38A);--oks:light-dark(#E2F6EB,#163222);
+ --shadow:0 1px 2px rgba(20,20,30,.06),0 6px 18px rgba(20,20,30,.06);--r:18px;--f:"Rubik","Heebo",system-ui,sans-serif}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--f);overflow-x:clip;-webkit-tap-highlight-color:transparent}
+button,input,select{font-family:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+[data-ico]{display:inline-grid;place-items:center}
+[data-ico] svg{width:100%;height:100%}
+
+/* ---------- header ---------- */
+.top{background:var(--red);color:#fff;padding:18px max(4vw,16px) 22px;border-radius:0 0 28px 28px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:52px;height:52px;flex:none;background:rgba(255,255,255,.16);border-radius:16px;display:grid;place-items:center}
+.logo svg{width:40px;height:40px}
+h1{margin:0;font-size:clamp(28px,6vw,40px);line-height:1.05;font-weight:800;letter-spacing:-.01em}
+.kick{margin:4px 0 0;font-size:15px;opacity:.9}
+.datecard{flex:none;display:flex;align-items:center;gap:10px;background:#fff;color:#17171C;border-radius:16px;padding:8px 14px 8px 12px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.datecard b{font-size:34px;line-height:1;font-weight:800;color:var(--red);font-variant-numeric:tabular-nums}
+.datecard span{display:grid;line-height:1.25}
+.datecard em{font-style:normal;font-weight:700;font-size:15px}
+.datecard i{font-style:normal;font-size:13px;color:#62626B}
+.who{display:flex;align-items:center;gap:10px;margin-top:14px}
+.who[hidden]{display:none}
+.who img{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,.7);flex:none}
+.who b{display:block;font-size:16px;line-height:1.2}
+.who span{display:block;font-size:13px;opacity:.85;direction:ltr;unicode-bidi:isolate;text-align:right;overflow-wrap:anywhere}
+.sitecard{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:16px}
+.pill{display:grid;background:#fff;border-radius:14px;padding:6px 14px 4px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.pill span{font-size:13px;color:#62626B;font-weight:500}
+.pill input{border:0;background:transparent;font-size:18px;font-weight:700;color:#17171C;padding:2px 0 6px;min-height:38px;width:100%}
+.pill input:focus{outline:none}
+.pill:focus-within{box-shadow:0 0 0 3px var(--yel)}
+.pill input:disabled{opacity:.6}
+.hbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:14px}
+.ws{display:inline-grid;grid-template-columns:1fr 1fr;background:rgba(0,0,0,.18);border-radius:14px;padding:4px;gap:4px}
+.ws[hidden]{display:none}
+.ws button{min-height:44px;padding:0 18px;border:0;border-radius:11px;background:transparent;color:#fff;font-weight:700;font-size:15px;white-space:nowrap}
+.ws .on{background:#fff;color:var(--red)}
+.acctbtns{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:600px){.top .hbar{flex-wrap:wrap}.top .ws{width:100%}.top .ws button{padding:0 8px}.acctbtns{width:100%}.acctbtns .btn{flex:1 1 auto}#mobile{flex:0 0 auto}}
+.acctbtns [hidden]{display:none}
+.btn.ghost{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.55)}
+
+/* ---------- layout ---------- */
+.wrap{display:grid;gap:22px;padding:20px max(4vw,16px) 40px;max-width:1320px;margin:0 auto}
+@media(min-width:900px){.wrap{grid-template-columns:minmax(0,540px) minmax(0,1fr);align-items:start}.list{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;overscroll-behavior:contain}}
+
+/* ---------- step cards ---------- */
+.sec{background:var(--card);border-radius:var(--r);padding:16px 16px 18px;margin-bottom:14px;box-shadow:var(--shadow);border:2px solid transparent;transition:border-color .2s}
+.sec.done{border-color:color-mix(in srgb,var(--ok) 35%,transparent)}
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.si{width:42px;height:42px;flex:none;border-radius:13px;background:var(--yels);color:var(--ink);padding:9px}
+.sec.done .si{background:var(--oks);color:var(--ok)}
+.sh h2{flex:1;margin:0;font-size:20px;font-weight:700;line-height:1.25}
+.sh h2 small{display:block;font-size:14px;font-weight:400;color:var(--mute);margin-top:1px}
+.okc{width:30px;height:30px;flex:none;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:transparent;transition:all .2s}
+.okc svg{width:18px;height:18px}
+.sec.done .okc{background:var(--ok);border-color:var(--ok);color:#fff}
+
+.hwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{font-weight:600;font-size:16px;min-height:46px;padding:8px 16px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;display:inline-flex;align-items:center;gap:6px;position:relative}
+.chip:hover{border-color:var(--mute)}
+.chip.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.chip.hw{flex-direction:column;justify-content:center;border-radius:16px;padding:14px 6px 12px;font-size:15px;gap:8px;text-align:center;line-height:1.2;min-height:98px;background:var(--soft);border-color:transparent}
+.chip.hw svg{width:34px;height:34px}
+.chip.hw.on{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 6px 16px color-mix(in srgb,var(--red) 35%,transparent)}
+.chip.add{border-style:dashed;border-color:var(--line);color:var(--mute);background:transparent}
+.chip.hw.add{background:transparent;border:2px dashed var(--line)}
+.x{font-style:normal;display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;font-size:15px;line-height:1;background:var(--soft);color:var(--mute)}
+.chip.hw .x{position:absolute;top:5px;inset-inline-end:5px}
+.chip.on .x{background:rgba(255,255,255,.25);color:inherit}
+.more{border:0;background:none;color:var(--ink);font-weight:700;font-size:15px;text-decoration:underline;min-height:44px;padding:0 6px}
+.addrow{display:flex;gap:8px;margin-top:10px}
+.addrow[hidden]{display:none}
+
+.in{flex:1;font-weight:500;font-size:18px;min-height:56px;padding:10px 16px;border:2px solid var(--line);border-radius:14px;background:var(--soft);color:var(--ink);width:100%}
+.in:focus{outline:none;border-color:var(--ink);background:var(--card)}
+.in::placeholder{color:var(--mute);opacity:.8}
+.code{font-variant-numeric:tabular-nums;letter-spacing:.03em;font-size:20px;font-weight:600}
+.field{display:flex;gap:8px}
+.ib{flex:none;min-width:56px;min-height:56px;border-radius:14px;border:0;background:var(--ink);color:var(--card);display:inline-grid;place-items:center;font-weight:700;font-size:16px;padding:0 14px}
+.ib svg{width:26px;height:26px}
+.ib.ph-b{background:var(--yel);color:#17171C}
+.ib.add{font-size:30px;font-weight:400;line-height:1;background:transparent;color:var(--ink);border:2px dashed var(--mute)}
+.ib.busy,.btn.busy{opacity:.55;pointer-events:none}
+.mrkbox{flex:1;display:flex;align-items:center;gap:1px;min-height:56px;padding:0 12px;border:2px solid var(--line);border-radius:14px;background:var(--soft);cursor:text}
+.mrkbox:focus-within{border-color:var(--ink);background:var(--card)}
+.mpre{font-size:17px;font-weight:500;color:var(--mute);font-variant-numeric:tabular-nums;flex:none}
+#mrk{flex:1;width:100%;min-width:3.4em;border:0;background:transparent;color:var(--ink);font-size:26px;font-weight:800;letter-spacing:.06em;font-variant-numeric:tabular-nums;padding:6px 4px 4px;border-bottom:4px solid var(--yel);border-radius:0;text-align:left}
+#mrk:focus{outline:none;border-bottom-color:var(--red)}
+#mrk::placeholder{color:var(--line);letter-spacing:.12em}
+@media(max-width:440px){.field{gap:6px}.field .ib{min-width:48px;padding:0 10px}.mrkbox{padding:0 9px}.mpre{font-size:13.5px}#mrk{font-size:22px;letter-spacing:.03em}}
+@media(max-width:390px){.sec{padding:14px 12px 16px}.field .ib{min-width:44px;padding:0 8px}.field .ib svg{width:22px;height:22px}.mrkbox{padding:0 7px}.mpre{font-size:12.5px}#mrk{font-size:20px;letter-spacing:.02em;min-width:3.2em}}
+.phs{display:flex;gap:8px;margin-top:10px}
+.phs:empty{display:none}
+.pf{position:relative;width:92px;height:92px;border-radius:14px;overflow:hidden;background:var(--soft);display:grid;place-items:center;font-size:13px;color:var(--mute);box-shadow:var(--shadow)}
+.pf img{width:100%;height:100%;object-fit:cover;display:block}
+.pf .x{position:absolute;top:5px;inset-inline-end:5px;width:30px;height:30px;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:18px}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.seg button{min-height:84px;border:2px solid var(--line);border-radius:16px;background:var(--soft);color:var(--ink);font-weight:700;font-size:15px;line-height:1.2;padding:8px 6px;display:grid;justify-items:center;gap:6px}
+.seg button svg{width:30px;height:30px}
+.seg .w-yes svg{color:var(--ok)}.seg .w-no svg{color:var(--red)}.seg .w-unk svg{color:var(--mute)}
+.seg .on.w-yes{background:var(--ok);border-color:var(--ok);color:#fff}
+.seg .on.w-no{background:var(--red);border-color:var(--red);color:#fff}
+.seg .on.w-unk{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.seg .on svg{color:inherit}
+.warn{color:var(--redd);font-size:15px;font-weight:700;margin:8px 0 0}
+.warn:empty{display:none}
+
+.cbx{position:relative}
+.sug{border:2px solid var(--ink);border-radius:14px;margin-top:8px;max-height:320px;overflow:auto;background:var(--card);box-shadow:var(--shadow)}
+.sug[hidden]{display:none}
+.sug button{display:block;width:100%;text-align:start;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);padding:11px 16px;min-height:54px;font-size:17px;line-height:1.3;position:relative}
+.sug button:last-child{border-bottom:0}
+.sug button:hover,.sug button.act{background:var(--yels)}
+.sug b{font-weight:700;unicode-bidi:plaintext}
+.sug small{display:block;color:var(--mute);font-size:14px;margin-top:2px}
+.sug .cst{padding-inline-end:52px}
+.sug .x{position:absolute;inset-inline-end:12px;top:50%;margin-top:-15px;width:30px;height:30px;font-size:17px}
+.sug .none{padding:14px 16px;color:var(--mute);font-size:15px}
+.msg{font-size:15px;margin-top:10px;border-radius:14px}
+.msg:empty{display:none}
+.msg.ok{background:var(--oks);color:var(--ok);font-weight:700;padding:10px 14px}
+.msg.err{background:color-mix(in srgb,var(--red) 10%,var(--card));border:2px solid var(--red);padding:12px 14px;color:var(--ink)}
+.msg.err b{color:var(--redd)}
+.msg.info{background:var(--yels);padding:10px 14px}
+.msg .acts2{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+.submitbar{position:sticky;bottom:12px;z-index:5;background:var(--card);border-radius:20px;padding:12px;box-shadow:0 10px 30px rgba(20,20,30,.18);display:grid;gap:10px}
+.prog{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--mute);font-weight:500}
+.pbar{flex:1;height:8px;border-radius:99px;background:var(--soft);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--ok);border-radius:99px;transition:width .3s}
+.primary{width:100%;min-height:62px;background:var(--red);color:#fff;border:0;border-radius:16px;font-weight:800;font-size:20px;box-shadow:0 6px 16px color-mix(in srgb,var(--red) 35%,transparent)}
+.primary:active{transform:translateY(1px)}
+.primary.locked{background:var(--soft);color:var(--mute);box-shadow:none;border:2px dashed var(--line)}
+.sec.need{border-color:var(--red);animation:nudge .45s}
+@keyframes nudge{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media(prefers-reduced-motion:reduce){.sec.need{animation:none}}
+.primary.confirm{background:var(--ink);color:var(--card);box-shadow:none}
+.primary:disabled{opacity:.5}
+.under{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.hint{font-size:14px;color:var(--mute);margin:0}
+.link{border:0;background:none;color:var(--ink);font-weight:700;font-size:15px;text-decoration:underline;min-height:44px;padding:0 4px}
+.editing{background:var(--yel);color:#17171C;border-radius:16px;padding:10px 16px;margin-bottom:14px;font-size:17px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.editing[hidden]{display:none}
+.editing .link{color:#17171C}
+
+/* ---------- list ---------- */
+.list{background:var(--card);border-radius:var(--r);padding:18px 16px;box-shadow:var(--shadow)}
+.lhead{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.lhead h2{margin:0;font-size:24px;font-weight:800}
+.lcount{font-size:15px;color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.stat{border:2px solid transparent;background:var(--soft);color:var(--ink);text-align:start;padding:10px 12px;border-radius:14px;display:grid;gap:2px}
+.stat b{font-size:clamp(24px,4vw,30px);line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--mute);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat[data-f=yes] b{color:var(--ok)}.stat[data-f=no] b{color:var(--red)}
+.stat[aria-pressed=true]{border-color:var(--ink);background:var(--card)}
+.tools{display:grid;gap:10px;margin-bottom:14px}
+.searchbox{position:relative}
+.searchbox .sico{position:absolute;inset-inline-start:14px;top:50%;width:22px;height:22px;margin-top:-11px;color:var(--mute)}
+.searchbox .in{padding-inline-start:46px;min-height:52px;font-size:17px}
+.tbtns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{min-height:48px;padding:0 16px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font-weight:700;font-size:15px;display:inline-flex;gap:8px;align-items:center;justify-content:center;white-space:nowrap}
+.btn svg{width:20px;height:20px}
+.btn.dark{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.btn.sm{min-height:44px;font-size:14px;padding:0 14px}
+.rows{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;padding:14px;border-radius:16px;background:var(--soft);align-items:start}
+.num{width:52px;height:52px;border-radius:14px;background:var(--card);display:grid;place-items:center;font-weight:800;font-size:22px;font-variant-numeric:tabular-nums;box-shadow:var(--shadow)}
+.t{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:18px;font-weight:700}
+.t svg{width:24px;height:24px;color:var(--red);flex:none}
+.mf{font-size:13px;font-weight:700;padding:2px 9px;border-radius:8px;background:var(--card);border:1px solid var(--line)}
+.md{font-weight:800;unicode-bidi:plaintext}
+.dup{color:#fff;background:var(--red);font-size:12px;padding:2px 8px;border-radius:6px}
+dl{display:flex;flex-wrap:wrap;gap:4px 18px;margin:8px 0 0;font-size:15px}
+dl div{display:flex;flex-wrap:wrap;gap:0 6px;min-width:0;max-width:100%}
+dt{color:var(--mute);flex:none}
+dd{margin:0;font-weight:600;unicode-bidi:plaintext;overflow-wrap:anywhere}
+.side{grid-column:2;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+.war{font-size:14px;font-weight:700;padding:5px 12px;border-radius:999px;white-space:nowrap}
+.war.w-yes{background:var(--oks);color:var(--ok)}
+.war.w-no{background:color-mix(in srgb,var(--red) 12%,var(--card));color:var(--redd)}
+.war.w-unk,.war.w-none{background:var(--card);color:var(--mute)}
+.acts{display:flex;gap:6px}
+.acts button{height:44px;border:0;background:var(--card);color:var(--ink);border-radius:12px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;font-weight:600;font-size:14px}
+.acts button:hover{background:var(--yels)}
+.acts svg{width:19px;height:19px}
+.thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.tb{border:0;border-radius:12px;background:var(--card);padding:0;width:72px;height:72px;overflow:hidden;position:relative;color:var(--mute);font-size:11px;box-shadow:var(--shadow)}
+.tb img{width:100%;height:100%;object-fit:cover;display:block}
+.tb span{position:absolute;inset-inline:0;bottom:0;background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-weight:700;line-height:1.7}
+.row.new{animation:pop .9s ease-out}
+@keyframes pop{0%{background:var(--yels);transform:scale(.98)}100%{background:var(--soft);transform:none}}
+@media(prefers-reduced-motion:reduce){.row.new{animation:none}*{transition:none!important}}
+.empty span{max-width:30ch}
+.empty b{color:var(--ink);font-size:19px}
+.empty{padding:34px 12px;color:var(--mute);text-align:center;font-size:17px;display:grid;justify-items:center;gap:10px;background:transparent}
+.empty svg{width:110px;height:auto}
+.status{font-size:14px;color:var(--mute);margin:14px 0 0}
+.mval{direction:ltr;unicode-bidi:isolate;white-space:nowrap}
+.mval span{color:var(--mute);font-weight:500}
+.mval b{font-size:17px;font-weight:800;color:var(--ink);background:var(--yels);padding:0 4px;border-radius:4px}
+
+/* ---------- phones: one view at a time + bottom tabs ---------- */
+.tabs{display:none}
+@media(max-width:899px){
+ body{padding-bottom:84px}
+ .tabs{display:grid;grid-template-columns:1fr 1fr;position:fixed;inset-inline:0;bottom:0;z-index:20;background:var(--card);box-shadow:0 -6px 24px rgba(20,20,30,.12);padding:8px 12px calc(8px + env(safe-area-inset-bottom));gap:8px}
+ .tabs button{min-height:56px;border:0;border-radius:14px;background:transparent;color:var(--mute);font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px}
+ .tabs [data-ico]{width:24px;height:24px}
+ .tabs button[aria-current=page]{background:var(--yels);color:var(--ink)}
+ .tabs b{background:var(--red);color:#fff;font-size:13px;min-width:24px;height:24px;border-radius:99px;display:inline-grid;place-items:center;padding:0 7px}
+ .tabs b.bump{animation:bump .5s}
+ body.typing .tabs{display:none}
+ body.typing{padding-bottom:0}
+ body.typing .submitbar{position:static;box-shadow:var(--shadow)}
+ body.view-add .list{display:none}
+ body.view-list .form{display:none}
+ .submitbar{bottom:94px}
+ .wrap{padding-top:16px}
+}
+@keyframes bump{50%{transform:scale(1.35)}}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.top{border-radius:0 0 22px 22px;padding:14px 14px 16px}h1{font-size:27px}.kick{display:none}.sitecard{margin-top:12px}.who{margin-top:10px}.hbar{margin-top:12px;flex-wrap:nowrap}.ws button{padding:0 14px}#mobile .lbl{display:none}#mobile{min-width:48px;padding:0 12px}.datecard b{font-size:28px}.datecard{padding:6px 10px}.logo{width:44px;height:44px}.logo svg{width:34px;height:34px}.kick{font-size:14px}.tbtns .btn{flex:1 1 auto}}
+@media(max-width:380px){.sitecard{grid-template-columns:1fr}.datecard span{display:none}}
+
+/* ---------- toast & sheets ---------- */
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);opacity:0;visibility:hidden;transition:transform .25s,opacity .25s,visibility .25s;background:var(--ink);color:var(--card);padding:12px 14px 12px 20px;border-radius:16px;display:flex;gap:12px;align-items:center;font-weight:600;font-size:16px;max-width:calc(100vw - 24px);z-index:40;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+@media(max-width:899px){#toast{bottom:auto;top:12px;transform:translate(-50%,-30px)}}
+#toast.show{transform:translate(-50%,0);opacity:1;visibility:visible}
+#toast button{border:0;background:var(--yel);color:#17171C;font-weight:800;border-radius:10px;min-height:42px;padding:0 16px}
+#toast button[hidden]{display:none}
+.sheet{position:fixed;inset:0;background:rgba(10,10,15,.5);display:grid;place-items:center;padding:16px;z-index:50}
+.sheet[hidden]{display:none}
+.card{background:var(--card);color:var(--ink);border-radius:22px;padding:22px;width:min(460px,100%);max-height:92vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.card h3{margin:0 0 8px;font-size:23px;font-weight:800}
+.card p{margin:0 0 16px;color:var(--mute)}
+.card .opts{display:grid;gap:10px;margin-bottom:14px}
+.card .opts button{min-height:56px;border:2px solid var(--line);border-radius:14px;background:var(--soft);color:var(--ink);font-weight:700;font-size:17px;text-align:start;padding:12px 16px;line-height:1.3;overflow-wrap:anywhere}
+.card .opts button small{display:block;font-weight:400;font-size:14px;color:var(--mute);margin-top:3px}
+.card .opts button:disabled{opacity:.45}
+.card .opts .danger{border-color:color-mix(in srgb,var(--red) 55%,transparent)}
+.card .row2{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.card .big{width:100%;border-radius:14px;display:block;background:var(--soft)}
+.frm{display:grid;gap:12px;margin-bottom:14px}
+.frm label{display:grid;gap:5px;font-size:15px;font-weight:700}
+.frm select,.frm input{font-weight:500;font-size:17px;min-height:52px;padding:8px 14px;border:2px solid var(--line);border-radius:14px;background:var(--soft);color:var(--ink);width:100%}
+.frm .err{color:var(--redd);font-size:15px;font-weight:700;margin:0}
+.frm .err:empty{display:none}
+.qr{background:#fff;padding:12px;border-radius:16px;width:max-content;margin:0 auto 12px}
+.qr img,.qr canvas{display:block;width:200px;height:200px}
+.lnk{font-size:13px;direction:ltr;text-align:center;overflow-wrap:anywhere;background:var(--soft);border-radius:10px;padding:8px;margin:0 0 12px;user-select:all}
+.steps{margin:0 0 14px;padding-inline-start:20px;font-size:16px;display:grid;gap:6px}
+.note{font-size:14px;color:var(--mute);margin:0 0 14px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body class="view-add">
+<header class="top">
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="7" y="16" width="34" height="25" rx="4" fill="#fff"/><path d="M7 20h34" stroke="#E4002B" stroke-width="3"/><rect x="4" y="9" width="40" height="10" rx="3" fill="#FFC93C"/><path d="M19 29l4 4 7-8" fill="none" stroke="#E4002B" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <div><h1>רשימת גריטה</h1><p class="kick">איסוף ציוד לגריטה, פשוט ומהיר</p></div>
+    </div>
+    <div class="datecard" aria-label="תאריך היום"><b id="dDay"></b><span><em id="dWk"></em><i id="dMo"></i></span></div>
+  </div>
+  <div class="who" id="who" hidden><img id="whoImg" alt=""><div><b id="whoName"></b><span id="whoMail"></span></div></div>
+  <div class="sitecard">
+    <label class="pill"><span>שם האתר</span><input id="site" maxlength="80" autocomplete="off" placeholder="לדוגמה: מחסן מרכזי"></label>
+    <label class="pill"><span>עיר</span><input id="city" maxlength="60" autocomplete="off" placeholder="לדוגמה: חיפה"></label>
+  </div>
+  <div class="hbar">
+    <div class="ws" id="wsBar" role="radiogroup" aria-label="איזו רשימה להציג" hidden><button type="button" role="radio" data-ws="mine">הרשימה שלי</button><button type="button" role="radio" data-ws="team">רשימת צוות</button></div>
+    <div class="acctbtns">
+      <button class="btn ghost sm" type="button" id="teamAdmin" hidden>ניהול צוות</button>
+      <button class="btn ghost sm" type="button" id="signOut" hidden>התנתקות</button>
+      <button class="btn ghost sm" type="button" id="mobile"></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="form" id="formView" aria-label="הוספת פריט">
+    <div class="editing" id="editBar" hidden><span id="editTxt"></span><button class="link" id="editCancel" type="button">ביטול</button></div>
+
+    <div class="sec step" data-step="type">
+      <div class="sh"><span class="si" data-ico="box"></span><h2>מה הפריט? <small>בחר סוג חומרה</small></h2><span class="okc" aria-hidden="true"></span></div>
+      <div class="hwgrid" id="hw"></div>
+      <div class="addrow" id="hwAdd" hidden><input class="in" id="hwNew" maxlength="40" placeholder="סוג חומרה חדש" autocomplete="off"><button class="ib" type="button" id="hwSave">הוסף</button></div>
+    </div>
+
+    <div class="sec step" data-step="mfr">
+      <div class="sh"><span class="si" data-ico="tag"></span><h2>מי היצרן? <small id="mfHint"></small></h2><span class="okc" aria-hidden="true"></span></div>
+      <div class="chips" id="mf"></div>
+      <div class="addrow" id="mfAdd" hidden><input class="in" id="mfNew" maxlength="40" placeholder="שם היצרן" autocomplete="off"><button class="ib" type="button" id="mfSave">הוסף</button></div>
+    </div>
+
+    <div class="sec step" data-step="model">
+      <div class="sh"><span class="si" data-ico="search"></span><h2><label for="model">איזה דגם?</label> <small>הבחירה משלימה את השאר</small></h2><span class="okc" aria-hidden="true"></span></div>
+      <div class="field cbx"><input class="in" id="model" maxlength="60" dir="auto" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="הקלד או בחר, למשל B1940" role="combobox" aria-expanded="false" aria-controls="modelSug" aria-autocomplete="list"><button class="ib add" type="button" id="modelPlus" aria-label="הוספת דגם חדש" title="דגם חדש">+</button></div>
+      <div class="sug" id="modelSug" role="listbox" hidden></div>
+      <div class="msg" id="modelMsg" aria-live="polite"></div>
+    </div>
+
+    <div class="sec step" data-step="sup">
+      <div class="sh"><span class="si" data-ico="truck"></span><h2><label for="sup">מי הספק?</label></h2><span class="okc" aria-hidden="true"></span></div>
+      <div class="field cbx"><input class="in" id="sup" maxlength="60" dir="auto" autocomplete="off" enterkeyhint="next" placeholder="בחר ספק, למשל הראל מחשבים" role="combobox" aria-expanded="false" aria-controls="supSug" aria-autocomplete="list"><button class="ib add" type="button" id="supPlus" aria-label="הוספת ספק חדש" title="ספק חדש">+</button></div>
+      <div class="sug" id="supSug" role="listbox" hidden></div>
+    </div>
+
+    <div class="sec step" data-step="serial">
+      <div class="sh"><span class="si" data-ico="barcode"></span><h2><label for="serial">מספר סיריאלי</label> <small>סרוק, צלם או הקלד</small></h2><span class="okc" aria-hidden="true"></span></div>
+      <div class="field"><input class="in code" id="serial" maxlength="64" dir="auto" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="next" placeholder="מספר סיריאלי"><button class="ib" type="button" data-scan="serial" aria-label="סריקת ברקוד סיריאלי" title="סריקת ברקוד"></button><button class="ib ph-b" type="button" data-pic="ps" aria-label="הוספת תמונה של הסיריאלי" title="הוספת תמונה"></button></div>
+      <div class="phs" id="box-ps"></div>
+      <p class="warn" id="dupWarn"></p>
+    </div>
+
+    <div class="sec step" data-step="mrk">
+      <div class="sh"><span class="si" data-ico="hash"></span><h2><label for="mrk">מספר מרכבה</label> <small>5 ספרות אחרונות</small></h2><span class="okc" aria-hidden="true"></span></div>
+      <div class="field mfield"><div class="mrkbox" dir="ltr"><span class="mpre" aria-hidden="true">0610-00000000</span><input id="mrk" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="_____" aria-label="מרכבה: 5 הספרות האחרונות"></div><button class="ib" type="button" data-scan="mrk" aria-label="סריקת ברקוד מרכבה" title="סריקת ברקוד"></button><button class="ib ph-b" type="button" data-pic="pm" aria-label="הוספת תמונה של המרכבה" title="הוספת תמונה"></button></div>
+      <div class="phs" id="box-pm"></div>
+    </div>
+
+    <div class="sec step" data-step="war">
+      <div class="sh"><span class="si" data-ico="shield"></span><h2>יש אחריות?</h2><span class="okc" aria-hidden="true"></span></div>
+      <div class="seg" id="war" role="radiogroup" aria-label="אחריות"></div>
+    </div>
+
+    <div class="sec step" data-step="loc">
+      <div class="sh"><span class="si" data-ico="pin"></span><h2><label for="loc">איפה הציוד נמצא?</label></h2><span class="okc" aria-hidden="true"></span></div>
+      <input class="in" id="loc" maxlength="120" list="locs" autocomplete="off" enterkeyhint="done" placeholder="לדוגמה: מחסן קומה 2, חדר 14">
+      <datalist id="locs"></datalist>
+    </div>
+
+    <div class="submitbar">
+      <div class="prog"><span class="pbar"><i id="pfill"></i></span><span id="prog"></span></div>
+      <button class="primary" type="button" id="submit">הוסף לרשימה</button>
+    </div>
+    <div class="under">
+      <p class="hint">סוג, יצרן, דגם, ספק, אחריות ומיקום נשארים לפריט הבא.</p>
+      <button class="link" type="button" id="reset">נקה טופס</button>
+    </div>
+  </section>
+
+  <section class="list" id="listView" aria-label="הפריטים ברשימה">
+    <div class="lhead"><h2>הרשימה</h2><span class="lcount" id="lcount"></span></div>
+    <div class="stats" id="stats"></div>
+    <div class="tools">
+      <label class="vh" for="q">חיפוש</label>
+      <div class="searchbox"><span class="sico" data-ico="search" aria-hidden="true"></span><input class="in" id="q" type="search" maxlength="64" placeholder="חיפוש דגם, סיריאלי, מרכבה, ספק…" autocomplete="off"></div>
+      <div class="tbtns">
+        <button class="btn dark" type="button" id="xlsx"></button>
+        <button class="btn" type="button" id="copy">העתק טבלה</button>
+        <button class="btn" type="button" id="clear">נקה נתונים</button>
+      </div>
+    </div>
+    <ul class="rows" id="rows"></ul>
+    <p class="status" id="status">מתחבר…</p>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="ניווט">
+  <button type="button" data-tab="add" aria-current="page"><span data-ico="plus"></span>הוספה</button>
+  <button type="button" data-tab="list"><span data-ico="list"></span>הרשימה<b id="tabCount">0</b></button>
+</nav>
+
+<input type="file" id="cam" accept="image/*" capture="environment" hidden>
+<input type="file" id="pic" accept="image/*" hidden>
+<div id="toast" role="status" aria-live="polite"><span id="toastT"></span><button type="button" id="toastB" hidden>בטל</button></div>
+<div class="sheet" id="sheet" hidden><div class="card" role="dialog" aria-modal="true" id="sheetC"></div></div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const svg=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const ICON={
+ monitor:'<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M9 20h6M12 16v4"/>',
+ pc:'<rect x="7" y="3" width="10" height="18" rx="1.5"/><path d="M10 7h4M10 10h4"/><circle cx="12" cy="16" r="1"/>',
+ laptop:'<rect x="5" y="5" width="14" height="10" rx="1"/><path d="M2.5 19h19L19.5 15h-15z"/>',
+ printer:'<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="1.5"/><path d="M7 14h10v7H7z"/>',
+ scanner:'<rect x="3" y="13" width="18" height="6" rx="1.5"/><path d="M5 13 18 6M7 16h3"/>',
+ keyboard:'<rect x="2" y="7" width="20" height="10" rx="1.5"/><path d="M6 11h.5M9.5 11h.5M13 11h.5M16.5 11h.5M7 14h10"/>',
+ mouse:'<rect x="7" y="3" width="10" height="18" rx="5"/><path d="M12 3v6"/>',
+ server:'<rect x="4" y="3" width="16" height="7" rx="1"/><rect x="4" y="14" width="16" height="7" rx="1"/><path d="M8 6.5h1M8 17.5h1"/>',
+ switch:'<rect x="2" y="9" width="20" height="7" rx="1"/><path d="M6 12.5h1M9 12.5h1M12 12.5h1M15 12.5h1M18 12.5h1"/>',
+ phone:'<path d="M5 4h4l1 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 1v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
+ projector:'<rect x="2" y="8" width="20" height="9" rx="1.5"/><circle cx="16" cy="12.5" r="2.5"/><path d="M5 12h4"/>',
+ ups:'<rect x="6" y="3" width="12" height="18" rx="1.5"/><path d="M13 7l-3 5h4l-3 5"/>',
+ other:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 12h6"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ cam:'<path d="M3 7v-2a1 1 0 0 1 1-1h3M17 4h3a1 1 0 0 1 1 1v2M21 17v2a1 1 0 0 1-1 1h-3M7 20H4a1 1 0 0 1-1-1v-2"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8"/>',
+ edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
+ del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+ xl:'<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 12l4 5M13 12l-4 5"/>',
+ pic:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
+ mob:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+ tablet:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M11 18h2"/>',
+ wifi:'<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>',
+ camera:'<rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.5-3h5L16 7"/>',
+ lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
+ pen:'<rect x="3" y="14" width="18" height="7" rx="1.5"/><path d="M14 4l3 3-6 6H8v-3z"/>',
+ finger:'<path d="M7 11a5 5 0 0 1 10 0v2a9 9 0 0 1-1 4M12 11v3a7 7 0 0 1-2 5M9.5 13.5a10 10 0 0 1-1.5 4.5M4.5 9a8 8 0 0 1 15 0M14.5 15a12 12 0 0 1-1 4"/>',
+ idcard:'<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M5 16a3 3 0 0 1 6 0M14 10h5M14 13h4"/>',
+ box:'<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+ tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.5"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+ truck:'<path d="M2 6h12v10H2zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+ barcode:'<path d="M4 5v14M7 5v14M10 5v14M14 5v14M17 5v14M20 5v14"/>',
+ hash:'<path d="M5 9h15M4 15h15M10 3L8 21M16 3l-2 18"/>',
+ shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+ shieldok:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+ shieldx:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/>',
+ shieldq:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M10 9.5a2 2 0 1 1 3 1.7c-.7.4-1 .8-1 1.6M12 16h.01"/>',
+ pin:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+ list:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+ pos:'<rect x="6" y="2" width="12" height="20" rx="2"/><rect x="8.5" y="5" width="7" height="5" rx=".5"/><path d="M9 13h.5M12 13h.5M15 13h.5M9 16h.5M12 16h.5M15 16h.5"/>'
+};
+/* catalog built from the four uploaded lists: [model, description, hardware type, manufacturer, supplier] */
+const CAT0=[["0830","מחשב","מחשב","Lenovo","ספק כללי"],["ADVICE","אל פסק","אל פסק","ADVICE","מגלקום"],["TOP V PRO","אל פסק","אל פסק","ADVICE","מגלקום"],["TOP V PRO 3K","אל פסק","אל פסק","ADVICE","מגלקום"],["T60 Plus","טאבלט","טאבלט","Teclast","טיטנוס בע\"מ"],["SCF4500","מגירה למדפסת 4530","מגירה למדפסת 4530","Samsung","הראל מדפסות"],["מגירה למדפסת 4530","מגירה למדפסת 4530","מגירה למדפסת 4530","Samsung","הראל מדפסות"],["HL-1760","לייזר שחור לבן","מדפסת","Brother","ספק כללי"],["HL-5270","לייזר שחור לבן","מדפסת","Brother","ספק כללי"],["HL-6180","לייזר שחור לבן","מדפסת","Brother","ספק כללי"],["HL-6410","לייזר שחור לבן","מדפסת","Brother","ספק כללי"],["MFC-L9570","משולבת צבע","מדפסת","Brother","ספק כללי"],["BR8065","משולבת שחור לבן","מדפסת","Brother","ספק כללי"],["MFC-6900","משולבת שחור לבן","מדפסת","Brother","ספק כללי"],["MFC-L6910DN","משולבת שחור לבן","מדפסת","Brother","ספק כללי"],["MFC-L9630CDN","משולבת צבע","מדפסת","Brother","צילומעתיק"],["C5290","מדפסת צבע דיו","מדפסת","Epson","דנגוט"],["C529R","מדפסת צבע דיו","מדפסת","Epson","דנגוט"],["C579R","משולבת צבע","מדפסת","Epson","דנגוט"],["P3005","לייזר שחור לבן","מדפסת","HP","ספק כללי"],["MX632","משולבת שחור לבן","מדפסת","Lexmark","גטר גרופ"],["MS811n","לייזר שחור לבן","מדפסת","Lexmark","גטר גרופ"],["CLP-660","לייזר צבע","מדפסת","Samsung","דנגוט"],["CLP-680ND","לייזר צבע","מדפסת","Samsung","דנגוט"],["CLP-775","לייזר צבע","מדפסת","Samsung","דנגוט"],["SL-M3820","לייזר שחור לבן","מדפסת","Samsung","דנגוט"],["CLX-6260FR","משולבת צבע","מדפסת","Samsung","דנגוט"],["SCX-4828FN","משולבת שחור לבן","מדפסת","Samsung","דנגוט"],["SCX-4833FD","משולבת שחור לבן","מדפסת","Samsung","דנגוט"],["SCX-5637FR","משולבת שחור לבן","מדפסת","Samsung","דנגוט"],["SCX5835FN","משולבת שחור לבן","מדפסת","Samsung","דנגוט"],["SL-M4070FR","משולבת שחור לבן","מדפסת","Samsung","דנגוט"],["M4530","לייזר שחור לבן","מדפסת","Samsung","הראל מדפסות"],["ML-4510","לייזר שחור לבן","מדפסת","Samsung","הראל מדפסות"],["ML-5010","לייזר שחור לבן","מדפסת","Samsung","הראל מדפסות"],["ML-4050","לייזר שחור לבן","מדפסת","Samsung","ספק כללי"],["TA-P6033","לייזר שחור לבן","מדפסת","Triumf Adler","גסטטנרטק"],["TA-P4026","משולבת שחור לבן","מדפסת","Triumf Adler","גסטטנרטק"],["DA220","מדבקות טרמי","מדפסת","Tsc","ספק כללי"],["E4203","מדבקות טרמי","מדפסת מדבקות","Datamax","דנגוט"],["E4204","מדבקות טרמי","מדפסת מדבקות","Datamax","דנגוט"],["EX2","מדבקות טרמי","מדפסת מדבקות","Datamax","דנגוט"],["TDP-244","מדבקות טרמי","מדפסת מדבקות","Tsc","דנגוט"],["BTP-R880NP","מדבקות טרמי","מדפסת ניהול תורים","Sbnc","דנגוט"],["A10-P","מסוף אשראי","מסוף אשראי","UIC","דנגוט"],["AOC22E1","מסך 22''","מסך","AOC","הראל מחשבים"],["M2470","מסך 24''","מסך","AOC","הראל מחשבים"],["GL2250","מסך 22''","מסך","BenQ","גטר גרופ"],["GW2255","מסך 22''","מסך","BenQ","גטר גרופ"],["GW2270","מסך 22''","מסך","BenQ","גטר גרופ"],["FJ9800","מסך 19''","מסך","Fujicom","יניר מערכות"],["FJ2230","מסך 22''","מסך","Fujicom","יניר מערכות"],["FJ2240","מסך 22''","מסך","Fujicom","יניר מערכות"],["FJ2260","מסך 22''","מסך","Fujicom","יניר מערכות"],["FJ2420","מסך 24''","מסך","Fujicom","יניר מערכות"],["HP L1706","מסך אחר","מסך","HP","ספק כללי"],["N223","מסך 22''","מסך","HP","ספק כללי"],["E201","מסך 20''","מסך","HP",""],["27BK55YP","מסך 27''","מסך","LG","מטריקס"],["24BK550Y","מסך 24''","מסך","LG","ספק כללי"],["223V5L","מסך 22''","מסך","Philips","גטר גרופ"],["242V8","מסך 24''","מסך","Philips","גטר גרופ"],["272E1C","מסך 27''","מסך","Philips","גטר גרופ"],["S24D408GAM","מסך 27''","מסך","Samsung","חיון"],["943","מסך 19''","מסך","Samsung","חיון"],["743BM","מסך 17''","מסך","Samsung","חיון"],["B1940","מסך 19''","מסך","Samsung","חיון"],["S19C450","מסך 19''","מסך","Samsung","חיון"],["S19E450","מסך 19''","מסך","Samsung","חיון"],["S22C450","מסך 22''","מסך","Samsung","חיון"],["S22D300BY","מסך 22''","מסך","Samsung","חיון"],["S22E450","מסך 22''","מסך","Samsung","חיון"],["S27D362GAM","מסך 27''","מסך","Samsung","חיון"],["S24E650","מסך 24''","מסך","Samsung","חיון"],["VG2239","מסך 22''","מסך","ViewSonic","ספק כללי"],["מסך כללי","מסך 19''","מסך","ספק כללי","ספק כללי"],["LILLIPUT UM-80","מסך עזר","מסך עזר","Lilliput","DXC"],["EOS1000","מצלמה","מצלמה","Canon","DXC"],["EOS1200","מצלמה","מצלמה","Canon","DXC"],["EOS1300","מצלמה","מצלמה","Canon","DXC"],["Edge","מצפנה","מצפנה","CheckPoint","ספק כללי"],["L-50","מצפנה","מצפנה","CheckPoint","ספק כללי"],["L-71","מצפנה","מצפנה","CheckPoint","ספק כללי"],["L-72","מצפנה","מצפנה","CheckPoint","ספק כללי"],["V-81","מצפנה","מצפנה","CheckPoint","ספק כללי"],["V91","מצפנה","מצפנה","CheckPoint","ספק כללי"],["MFP E62655","משולבת שחור לבן","מדפסת","HP","ספק כללי"],["CTL-471-EU","משטח חתימה","משטח חתימה","WACOM","IBM"],["CTL-472-N","משטח חתימה","משטח חתימה","WACOM","IBM"],["FT-0405","משטח חתימה","משטח חתימה","WACOM","IBM"],["STU-430","משטח חתימה","משטח חתימה","WACOM","IBM"],["3CRS48G-24-91","מתג","מתג","HPE","HPE"],["Aruba 24 EXT","מתג","מתג","HPE","מטריקס"],["Aruba 24 POE","מתג","מתג","HPE","מטריקס"],["Aruba 48 POE","מתג","מתג","HPE","מטריקס"],["Aruba Optic","מתג","מתג","HPE","מטריקס"],["HP A5500-24G","מתג","מתג","HPE","HPE"],["HP A5500-48G","מתג","מתג","HPE","HPE"],["HP A5510-24G","מתג","מתג","HPE","HPE"],["HP A5510-48G","מתג","מתג","HPE","HPE"],["HPE 5510 24G PoE","מתג","מתג","HPE","HPE"],["HPE 5510 48G PoE","מתג","מתג","HPE","HPE"],["Aruba 6300M 24","מתג","מתג","HPE","מטריקס"],["Aruba 6300M 48","מתג","מתג","HPE","מטריקס"],["AV176U","סורק מסמכים","סורק מסמכים","Avision",""],["Plustek 821","סורק תמונות","סורק תמונות","ספק כללי","IBM"],["Plustek S601","סורק תמונות","סורק תמונות","ספק כללי","IBM"],["CSD330","קורא טביעות אצבע","קורא טביעות אצבע","3M","IBM"],["BTWSQ","קורא טביעות אצבע","קורא טביעות אצבע","Smufs","Smufs"],["BMS-3","קורא טביעות אצבע","קורא טביעות אצבע","Suprema","ספק כללי"],["PinPad","קורא תעודת זהות חכמה","קורא תעודת זהות חכמה","ספק כללי","IBM"],["Aruba AP-515","מגבר wifi","מגבר wifi","HPE","מטריקס"],["DELL 7080MT","מחשב","מחשב","DELL","מטריקס"],["Optiplex5000-16-500","מחשב","מחשב","DELL","תים נטקום"],["D17S","מחשב","מחשב","DELL","מטריקס"],["HP600 G5 TWR","מחשב","מחשב","HP","טלקוד"],["HP6300","מחשב","מחשב","HP","ספק כללי"],["HP800 G2 CL","מחשב","מחשב","HP","דורקום / קומפיוטרלנד"],["HP800 G2 SFF","מחשב","מחשב","HP","טלקוד"],["HP400 G9 PRO TWR","מחשב","מחשב","HP","מטריקס"],["HP800 G3 SFF","מחשב","מחשב","HP","טלקוד"],["HP800 G3 TWR","מחשב","מחשב","HP","טלקוד"],["HP400 G9 PRO","מחשב","מחשב","HP","מטריקס"],["3209","מחשב","מחשב","Lenovo","ספק כללי"],["4518","מחשב","מחשב","Lenovo","ספק כללי"],["7220","מחשב","מחשב","Lenovo","ספק כללי"],["7506","מחשב","מחשב","Lenovo","ספק כללי"],["M70S G3","מחשב","מחשב","Lenovo","הראל מחשבים"],["M75Q","מחשב","מחשב","Lenovo","הראל מחשבים"],["M910Q","מחשב","מחשב","Lenovo","הראל מחשבים"],["M910-SFF","מחשב","מחשב","Lenovo","הראל מחשבים"],["M910-TWR","מחשב","מחשב","Lenovo","הראל מחשבים"],["M920Q","מחשב","מחשב","Lenovo","הראל מחשבים"],["M93P-TWR","מחשב","מחשב","Lenovo","הראל מחשבים"],["Panasonic FZ-G1","מחשב לוח","מחשב לוח","Panasonic","תים נטקום"],["SAM-01-T545","מחשב לוח","מחשב לוח","Samsung","תים נטקום"],["Samsung Tab S6 LITE","מחשב לוח","מחשב לוח","Samsung","תים נטקום"],["Toshiba Tablet","מחשב לוח","מחשב לוח","Toshiba",""],["ZenBook UX433FA","מחשב נייד","מחשב נייד","Asus","הראל מחשבים"],["DELL-5400","מחשב נייד","מחשב נייד","DELL","מטריקס"],["DELL-5410","מחשב נייד","מחשב נייד","DELL","מטריקס"],["DELL-7490","מחשב נייד","מחשב נייד","DELL","מטריקס"],["FUJITSU U9311","מחשב נייד","מחשב נייד","Fujitsu","הראל מחשבים"],["GLKFDSSJGLKJ","מחשב נייד","מחשב נייד","HP","זיפ קום"],["HP645G10","מחשב נייד","מחשב נייד","HP","זיפ קום"],["HP645G9","מחשב נייד","מחשב נייד","HP","זיפ קום"],["HP650","מחשב נייד","מחשב נייד","HP","מטריקס"],["HP840G4","מחשב נייד","מחשב נייד","HP","מטריקס"],["HP845G8","מחשב נייד","מחשב נייד","HP","זיפ קום"],["HP645G11","מחשב נייד","מחשב נייד","HP","זיפ קום"],["HP645G11","מחשב נייד","מחשב נייד","HP","מטריקס"],["L15G4","מחשב נייד","מחשב נייד","Lenovo","הראל מחשבים"],["L460 14HD","מחשב נייד","מחשב נייד","Lenovo","הראל מחשבים"],["L570 15.6","מחשב נייד","מחשב נייד","Lenovo","הראל מחשבים"],["L13G6","מחשב נייד","מחשב נייד","Lenovo","הראל מחשבים"],["L14 G6","מחשב נייד","מחשב נייד","Lenovo","הראל מחשבים"],["IEC-22B3","מחשב קיוסק","מחשב קיוסק","דנגוט","דנגוט"],["CHIPPC","מחשב רזה","מחשב רזה","ChipPC","הראל מחשבים"],["CHIPPC IQPC","מחשב רזה","מחשב רזה","ChipPC","הראל מחשבים"],["CHIPPC LXD3","מחשב רזה","מחשב רזה","ChipPC","הראל מחשבים"],["T520","מחשב רזה","מחשב רזה","HP","מטריקס"],["M70Q","מחשב רזה","מחשב רזה","Lenovo","הראל מחשבים"],["CHIPPC IXPC","מחשב רזה","מחשב רזה","ChipPC","הראל מחשבים"],["RX1330M4","שרת","שרת","Fujitsu","הראל מחשבים"],["TX1320M5","שרת","שרת","Fujitsu","הראל מחשבים"],["TX1320M6","שרת","שרת","Fujitsu","הראל מחשבים"],["DL360 G7","שרת","שרת","HP","HPE"],["DL360 G9","שרת","שרת","HP","HPE"],["HP6300 SR","שרת","שרת","HP","HPE"],["ML110 G6","שרת","שרת","HP","HPE"],["ML330 G6","שרת","שרת","HP","HPE"],["DL320e G8","שרת","שרת","HPE","HPE"],["DL325 G10","שרת","שרת","HPE","HPE"],["DL60 G9","שרת","שרת","HPE","HPE"],["ML350 G5","שרת","שרת","HPE","HPE"]];
+const BASE_TYPES=["מדפסת", "מסך", "מחשב", "מחשב נייד", "מתג", "שרת", "מצפנה", "מחשב רזה", "מדפסת מדבקות", "משטח חתימה", "מחשב לוח", "אל פסק", "מצלמה", "קורא טביעות אצבע", "מגירה למדפסת 4530", "סורק תמונות", "טאבלט", "מדפסת ניהול תורים", "מסוף אשראי", "מסך עזר", "סורק מסמכים", "קורא תעודת זהות חכמה", "מגבר wifi", "מחשב קיוסק"];
+const BASE_MF=["Samsung", "HP", "Lenovo", "HPE", "Brother", "CheckPoint", "DELL", "Fujicom", "ספק כללי", "WACOM", "Fujitsu", "ChipPC", "ADVICE", "Epson", "Datamax", "BenQ", "Philips", "Canon", "Lexmark", "Triumf Adler", "Tsc", "AOC", "LG", "Teclast", "Sbnc", "UIC", "ViewSonic", "Lilliput", "Avision", "3M", "Smufs", "Suprema", "Panasonic", "Toshiba", "Asus", "דנגוט"];
+const BASE_SUP=["ספק כללי", "הראל מחשבים", "דנגוט", "מטריקס", "HPE", "חיון", "IBM", "גטר גרופ", "הראל מדפסות", "זיפ קום", "יניר מערכות", "DXC", "טלקוד", "תים נטקום", "מגלקום", "גסטטנרטק", "Smufs", "דורקום / קומפיוטרלנד", "טיטנוס בע\"מ", "צילומעתיק", "3COM", "CISCO", "אריקום", "בזק", "בזק עסקים", "חברת חשמל", "טלדור", "כיבוי אש", "מלמ תים", "קולפלו", "תהילה"];
+const ICONMAP=[[/מדפסת|מגירה/,'printer'],[/מסך/,'monitor'],[/נייד/,'laptop'],[/לוח|טאבלט/,'tablet'],[/שרת/,'server'],[/מתג/,'switch'],[/wifi/i,'wifi'],[/אל פסק|ups/i,'ups'],[/סורק/,'scanner'],[/מצלמה/,'camera'],[/מצפנה/,'lock'],[/חתימה/,'pen'],[/טביעות/,'finger'],[/תעודת/,'idcard'],[/אשראי/,'pos'],[/מקלדת/,'keyboard'],[/עכבר/,'mouse'],[/טלפון/,'phone'],[/מקרן/,'projector'],[/מחשב/,'pc']];
+const iconFor=t=>{for(const [re,k] of ICONMAP)if(re.test(t||''))return ICON[k];return ICON.other};
+const nk=s=>String(s||'').toLowerCase().replace(/[\s\-_.\/]/g,'');
+const HW_TOP=8,MF_TOP=12;
+const WAR=[['ללא אחריות','w-no'],['כן עם אחריות','w-yes'],['לא ידוע','w-unk']];
+const WICO={'w-no':'shieldx','w-yes':'shieldok','w-unk':'shieldq'};
+const WCLS=new Map(WAR);
+const HEAD=["מס'","סוג חומרה","יצרן","דגם","ספק","סיריאלי","מרכבה","אחריות","מיקום"];
+const XLSX_SRC='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+const ZX_SRC='https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js';
+const EXCELJS_SRC=['https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js','https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'];
+const QR_SRC='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+const APP_URL=location.origin+location.pathname.replace(/index\.html$/,'');
+const LS='scrap-list-v1',LSP='scrap-photos-v1';
+const fine=matchMedia('(pointer:fine)').matches;
+
+let items=[],meta={site:'',city:'',mf:[],hw:[],sup:[],cat:[]},mode='wait',db=null,dl=null,assets=null,readonly=false;
+let ws='mine',uidMe=null,userCap=null,canWrite=null,personalRefused=false,unsubs=[],loadTimer=null;
+const BASE=()=>ws==='team'?'lists/main':'data/users/'+uidMe+'/meta';
+let form={type:'',mfr:'',war:'',ps:'',pm:'',model:'',sup:'',desc:'',picked:false,manual:false,supAuto:false},showAllHw=false,showAllMf=false,editId=null,filter='all',q='',dupOk=false,lastNew=null,scanTarget=null,picTarget=null,metaTimer=null;
+let localPhotos={},photoCache={},photoPending={},uploading={ps:false,pm:false};
+const REF=/^[adl]:[A-Za-z0-9_-]{1,64}$/;
+const cut=(v,n)=>String(v==null?'':v).slice(0,n);
+const SAFE_ID=/^[A-Za-z0-9_\-.~:@+]{1,128}$/;
+function cleanItem(v,id,kinds){v=v&&typeof v==='object'?v:{};const okRef=r=>typeof r==='string'&&REF.test(r)&&kinds.includes(r[0])?r:'';
+ return{id:String(id),ts:Number(v.ts)||0,type:cut(v.type,60),mfr:cut(v.mfr,40),model:cut(v.model,60),sup:cut(v.sup,60),serial:cut(v.serial,64),mrk:cut(v.mrk,32),war:cut(v.war,20),loc:cut(v.loc,120),ps:okRef(v.ps),pm:okRef(v.pm)}}
+const CAT_MAX=300;
+function cleanMeta(v){v=v&&typeof v==='object'?v:{};const arr=(a,n=40)=>Array.isArray(a)?[...new Set(a.map(x=>cut(x,n).trim()).filter(Boolean))].slice(0,100):[];
+ const cat=(Array.isArray(v.cat)?v.cat:[]).filter(e=>e&&typeof e==='object').map(e=>({m:cut(e.m,60).trim(),d:cut(e.d,60).trim(),t:cut(e.t,40).trim(),f:cut(e.f,40).trim(),s:cut(e.s,60).trim()})).filter(e=>e.m&&e.t&&e.f).slice(0,CAT_MAX);
+ return{site:cut(v.site,80),city:cut(v.city,60),mf:arr(v.mf),hw:arr(v.hw),sup:arr(v.sup,60),cat}}
+const EMPTY_ART='<svg viewBox="0 0 120 90" aria-hidden="true"><ellipse cx="60" cy="82" rx="42" ry="5" fill="currentColor" opacity=".12"/><path d="M22 34l38-16 38 16v34L60 84 22 68z" fill="#FFC93C"/><path d="M22 34l38 16 38-16" fill="none" stroke="#17171C" stroke-width="3" stroke-linejoin="round"/><path d="M60 50v34" stroke="#17171C" stroke-width="3"/><path d="M22 34l38-16 38 16v34L60 84 22 68z" fill="none" stroke="#17171C" stroke-width="3" stroke-linejoin="round"/><path d="M34 26l38 16" stroke="#E4002B" stroke-width="5" stroke-linecap="round"/></svg>';
+const MRK_PRE='0610-00000000',MRK_RE=/^0610-00000000(\d{5})$/;
+const mrk5=s=>{const d=String(s||'').replace(/\D/g,'');return d.length>=5?d.slice(-5):d};
+const mrkHtml=s=>{const m=MRK_RE.exec(s||'');return m?`<span class="mval"><span>${MRK_PRE}</span><b>${m[1]}</b></span>`:esc(s)};
+
+/* ---------- date ---------- */
+const dstr=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+function tick(){const d=new Date();$('#dDay').textContent=d.getDate();$('#dWk').textContent=d.toLocaleDateString('he-IL',{weekday:'long'});$('#dMo').textContent=d.toLocaleDateString('he-IL',{month:'long',year:'numeric'})}
+tick();setInterval(tick,30000);
+
+/* ---------- storage ---------- */
+function lsLoad(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d&&typeof d==='object'){items=(Array.isArray(d.items)?d.items:[]).filter(x=>x&&typeof x==='object'&&SAFE_ID.test(String(x.id))).map(x=>cleanItem(x,x.id,'l'));meta=cleanMeta(d.meta)}}catch(e){}
+ try{const p=JSON.parse(localStorage.getItem(LSP)||'{}');localPhotos=p&&typeof p==='object'&&!Array.isArray(p)?p:{}}catch(e){localPhotos={}}}
+let lsWarned=false;
+function lsSave(){if(mode!=='local')return true;try{localStorage.setItem(LS,JSON.stringify({items,meta}));lsWarned=false;return true}catch(e){if(!lsWarned){lsWarned=true;toast('אין מקום שמירה במכשיר. ייצא לאקסל כדי לא לאבד נתונים')}return false}}
+function lsSavePhotos(){try{localStorage.setItem(LSP,JSON.stringify(localPhotos));return true}catch(e){return false}}
+
+/* ---------- photos ---------- */
+function loadImg(src){return new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=src})}
+async function shrink(file,max,q){const u=URL.createObjectURL(file);try{const img=await loadImg(u);const k=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(img,0,0,c.width,c.height);return c}finally{URL.revokeObjectURL(u)}}
+const toBlob=(c,q)=>new Promise(r=>c.toBlob(r,'image/jpeg',q));
+async function smallDataUrl(file,limit){let max=1100,q=.65,d='';for(let i=0;i<6;i++){const c=await shrink(file,max,q);d=c.toDataURL('image/jpeg',q);if(d.length<=limit)return d;max=Math.round(max*.8);q=Math.max(.45,q-.05)}return d}
+async function storePhoto(file){
+ if(mode==='db'&&assets&&ws==='team'){try{const c=await shrink(file,1600,.82);const b=await toBlob(c,.82);const r=await assets.upload(b,{type:'image/jpeg'});photoCache['a:'+r.id]=r.url;return 'a:'+r.id}catch(e){}}
+ const id=uid();
+ if(mode==='db'){const d=await smallDataUrl(file,700000);await db.collection(BASE()+'/photos').doc(id).set({d});photoCache['d:'+id]=d;return 'd:'+id}
+ const d=await smallDataUrl(file,160000);localPhotos[id]=d;if(!lsSavePhotos()){delete localPhotos[id];throw new Error('full')}photoCache['l:'+id]=d;return 'l:'+id;
+}
+function photoUrl(ref){
+ if(!ref||!REF.test(ref))return '';
+ if(photoCache[ref])return photoCache[ref];
+ const [k,id]=[ref[0],ref.slice(2)];
+ if(k==='a')return photoCache[ref]='/_blob/'+id;
+ if(k==='l'){const d=Object.prototype.hasOwnProperty.call(localPhotos,id)?localPhotos[id]:'';return typeof d==='string'&&/^data:image\/(jpeg|png|webp);base64,/.test(d)?(photoCache[ref]=d):''}
+ if(k==='d'&&db&&!photoPending[ref]){photoPending[ref]=1;db.collection(BASE()+'/photos').doc(id).get().then(s=>{const d=s.exists&&s.data().d;if(typeof d==='string'&&/^data:image\/(jpeg|png|webp);base64,/.test(d)){photoCache[ref]=d;render();renderPhotoBoxes()}else delete photoPending[ref]}).catch(()=>{delete photoPending[ref]})}
+ return '';
+}
+async function ensurePhoto(ref){if(ref[0]==='d'&&!photoCache[ref]&&db){try{const s=await db.collection(BASE()+'/photos').doc(ref.slice(2)).get();const d=s.exists&&s.data().d;if(typeof d==='string'&&/^data:image\/(jpeg|png|webp);base64,/.test(d))photoCache[ref]=d}catch(e){}}return photoUrl(ref)}
+function deletePhoto(ref,base,exceptId){if(!ref||!REF.test(ref))return;if(items.some(i=>i.id!==exceptId&&(i.ps===ref||i.pm===ref)))return;const id=ref.slice(2);delete photoCache[ref];
+ if(ref[0]==='a'&&assets)assets.delete(id).catch(()=>{});
+ else if(ref[0]==='d'&&db)db.collection((base||BASE())+'/photos').doc(id).delete().catch(()=>{});
+ else if(ref[0]==='l'){delete localPhotos[id];lsSavePhotos()}}
+const isUsed=ref=>items.some(x=>x.ps===ref||x.pm===ref);
+function dropUnsaved(){for(const k of ['ps','pm']){if(form[k]&&!isUsed(form[k]))deletePhoto(form[k]);form[k]=''}}
+function renderPhotoBoxes(){for(const k of ['ps','pm']){const b=$('#box-'+k);if(uploading[k]){b.innerHTML='<div class="pf">מעלה…</div>';continue}const u=form[k]&&photoUrl(form[k]);b.innerHTML=form[k]?`<div class="pf">${u?`<img src="${esc(u)}" alt="תמונה מצורפת">`:'טוען…'}<button type="button" class="x" data-rmpic="${k}" aria-label="הסרת התמונה">×</button></div>`:''}}
+function viewPhoto(ref,title){const u=photoUrl(ref);if(!u)return;sheet(`<h3>${esc(title)}</h3><img class="big" src="${esc(u)}" alt="${esc(title)}"><div class="row2" style="margin-top:12px"><button class="btn" type="button" data-close>סגור</button></div>`)}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+function fail(e){if(e&&e.code==='invalid_argument'&&canWrite!==true){readonly=true;applyRO();render();setStatus('db');toast('אין לך הרשאת עריכה ברשימה הזו')}else if(e&&e.code==='quota_exceeded')toast('נגמר מקום האחסון של הרשימה');else toast('השמירה נכשלה, נסה שוב')}
+async function putItem(it){if(mode==='db'){try{await db.collection(BASE()+'/items').doc(it.id).set(it)}catch(e){if(ws==='mine'&&e&&e.code==='invalid_argument'){personalRefused=true;connect();putItem(it);toast('אין לך הרשאת שמירה בענן, הרשימה שלך נשמרת במכשיר הזה')}else fail(e)}}else{const i=items.findIndex(x=>x.id===it.id);if(i>=0)items[i]=it;else items.push(it);lsSave();render()}}
+async function delItem(id){if(mode==='db'){try{await db.collection(BASE()+'/items').doc(id).delete()}catch(e){fail(e)}}else{items=items.filter(x=>x.id!==id);lsSave();render()}}
+let metaDirty=false,pendingMeta=null,pendFields={};
+function saveMeta(fields){
+ if(mode!=='db'){lsSave();return}
+ if(readonly)return;
+ metaDirty=true;const f=fields||{site:meta.site,city:meta.city,mf:meta.mf,hw:meta.hw,sup:meta.sup,cat:meta.cat};
+ for(const k in f)pendFields[k]=Array.isArray(f[k])?[...f[k]]:f[k];
+ clearTimeout(metaTimer);const path=BASE();
+ pendingMeta=async()=>{const p=pendFields;pendFields={};pendingMeta=null;metaTimer=null;const ref=db.doc(path);
+  try{await ref.update(p)}catch(e){
+   if(e&&e.code==='invalid_argument'){try{const s=await ref.get();if(s.exists)throw e;await ref.set({...cleanMeta({}),...p})}catch(e2){fail(e2)}}
+   else fail(e)}
+  metaDirty=false};
+ metaTimer=setTimeout(pendingMeta,500);
+}
+function setStatus(s){if(s==='db')s=ws==='team'?(readonly?'teamro':'team'):'mine';$('#status').textContent={wait:'מתחבר…',mine:'הרשימה האישית שלך, שמורה בענן בחשבון שלך. רק אתה רואה אותה, מכל טלפון או מחשב שבו אתה מחובר.',team:'רשימת הצוות: משותפת ומתעדכנת בזמן אמת לכל חברי הצוות שהמנהל הוסיף.',teamro:'רשימת הצוות זמינה רק לחברי צוות. בקש מהמנהל להוסיף את המייל שלך.',local:'הרשימה נשמרת במכשיר הזה בלבד.',slow:'החיבור איטי, ייתכן שהנתונים אינם מעודכנים.',err:'אין חיבור לשמירה בענן כרגע.'}[s]||''}
+function applyRO(){document.querySelectorAll('.form button,.form input,#site,#city').forEach(el=>el.disabled=readonly)}
+
+/* ---------- form chips ---------- */
+const lc=x=>String(x||'').toLowerCase();
+/* catalog = built-in rows + models people added (meta.cat) */
+function catAll(){return [...meta.cat.map((e,i)=>({...e,id:'c'+i,custom:1})),...CAT0.map(([m,d,t,f,s],i)=>({m,d,t,f,s,id:'b'+i}))]}
+function typesAll(){const bs=new Set(BASE_TYPES.map(lc));return [...BASE_TYPES.map(n=>({n,base:1})),...meta.hw.filter(n=>!bs.has(lc(n))).map(n=>({n}))]}
+function mfsAll(){const bs=new Set(BASE_MF.map(lc));return [...BASE_MF.map(n=>({n,base:1})),...meta.mf.filter(n=>!bs.has(lc(n))).map(n=>({n}))]}
+function supsAll(){const bs=new Set(BASE_SUP.map(lc));return [...BASE_SUP,...meta.sup.filter(n=>!bs.has(lc(n)))]}
+function hwAll(){let a=typesAll();
+ if(!showAllHw){const top=a.slice(0,HW_TOP);a=top.concat(a.slice(HW_TOP).filter(h=>!h.base))}
+ if(form.type&&!a.some(h=>h.n===form.type))a.push(typesAll().find(h=>h.n===form.type)||{n:form.type,tmp:1});
+ return a}
+function mfsForType(t){const set=new Set(catAll().filter(e=>e.t===t).map(e=>lc(e.f)));return mfsAll().filter(m=>set.has(lc(m.n)))}
+function mfAll(){
+ const all=mfsAll();let a;
+ if(showAllMf)a=all;
+ else if(form.type){a=mfsForType(form.type);if(!a.length)a=all.slice(0,MF_TOP)}
+ else a=all.slice(0,MF_TOP).concat(all.slice(MF_TOP).filter(m=>!m.base));
+ if(form.mfr&&!a.some(m=>lc(m.n)===lc(form.mfr)))a.push(all.find(m=>lc(m.n)===lc(form.mfr))||{n:form.mfr,tmp:1});
+ return a}
+function renderChips(){
+ const hw=hwAll(),hidHw=typesAll().length-hw.length;
+ $('#hw').innerHTML=hw.map(h=>`<button type="button" class="chip hw${form.type===h.n?' on':''}" data-hw="${esc(h.n)}" aria-pressed="${form.type===h.n}">${svg(iconFor(h.n))}<span>${esc(h.n)}</span>${h.base||h.tmp?'':`<i class="x" data-delhw="${esc(h.n)}" title="הסר מהרשימה">×</i>`}</button>`).join('')
+  +(hidHw>0||showAllHw?`<button type="button" class="chip hw add" data-more="hw">${svg(ICON.other)}<span>${showAllHw?'פחות סוגים':`עוד ${hidHw} סוגים`}</span></button>`:'')
+  +`<button type="button" class="chip hw add" id="hwPlus">${svg(ICON.plus)}<span>סוג חדש</span></button>`;
+ const mf=mfAll(),hidMf=mfsAll().length-mf.length;
+ $('#mf').innerHTML=mf.map(m=>{const on=lc(form.mfr)===lc(m.n);return `<button type="button" class="chip${on?' on':''}" data-mf="${esc(m.n)}" aria-pressed="${on}">${esc(m.n)}${m.base||m.tmp?'':`<i class="x" data-delmf="${esc(m.n)}" title="הסר מהרשימה">×</i>`}</button>`}).join('')
+  +(hidMf>0||showAllMf?`<button type="button" class="more" data-more="mf">${showAllMf?'הצג פחות':`כל היצרנים (${mfsAll().length})`}</button>`:'')
+  +`<button type="button" class="chip add" id="mfPlus">+ יצרן חדש</button>`;
+ $('#mfHint').textContent=form.type&&!showAllMf&&mfsForType(form.type).length?`יצרנים של ${form.type}`:'';
+ $('#war').innerHTML=WAR.map(([n,c])=>`<button type="button" role="radio" class="${c}${form.war===n?' on':''}" data-war="${esc(n)}" aria-checked="${form.war===n}">${svg(ICON[WICO[c]])}<span>${esc(n)}</span></button>`).join('');
+ applyRO();updSteps();
+}
+document.querySelectorAll('[data-ico]').forEach(el=>el.innerHTML=svg(ICON[el.dataset.ico]||ICON.other));
+document.querySelectorAll('.okc').forEach(el=>el.innerHTML=svg(ICON.check));
+document.querySelectorAll('[data-scan]').forEach(b=>b.innerHTML=svg(ICON.cam));
+document.querySelectorAll('[data-pic]').forEach(b=>b.innerHTML=svg(ICON.pic));
+$('#xlsx').innerHTML=svg(ICON.xl)+'ייצוא לאקסל';
+$('#mobile').innerHTML=svg(ICON.mob)+'<span class="lbl">פתיחה והתקנה בנייד</span>';$('#mobile').setAttribute('aria-label','פתיחה והתקנה בנייד');
+
+function addSupplier(){
+ const v=$('#sup').value.trim().replace(/\s+/g,' ');
+ if(!v){$('#sup').focus();toast('הקלד שם ספק חדש ואז לחץ +');return}
+ const hit=supsAll().find(x=>lc(x)===lc(v));
+ if(!hit){if(meta.sup.length>=100){toast('הגעת למקסימום ברשימה');return}meta.sup.push(v);saveMeta({sup:meta.sup})}
+ form.sup=hit||v;form.supAuto=false;$('#sup').value=form.sup;hideSug('sup');updSteps();toast(hit?'הספק כבר קיים ברשימה ונבחר':'הספק נוסף לרשימה הקבועה');
+}
+function addCustom(kind){
+ const inp=kind==='hw'?$('#hwNew'):$('#mfNew');let v=inp.value.trim().replace(/\s+/g,' ');if(!v)return;
+ if(kind==='mf')v=v.toUpperCase();
+ const list=kind==='hw'?typesAll().map(x=>x.n):mfsAll().map(x=>x.n);
+ const hit=list.find(x=>x.toLowerCase()===v.toLowerCase());
+ if(!hit){if(meta[kind].length>=100){toast('הגעת למקסימום ברשימה');return}meta[kind].push(v);saveMeta({[kind]:meta[kind]})}
+ if(kind==='hw'){form.type=hit||v;checkModelFit()}else{form.mfr=hit||v;checkModelFit()}
+ inp.value='';(kind==='hw'?$('#hwAdd'):$('#mfAdd')).hidden=true;renderChips();
+ toast(hit?'כבר קיים ברשימה, נבחר':'נוסף לרשימה הקבועה');
+}
+/* ---------- model & supplier pickers ---------- */
+function setMsg(cls,html){const el=$('#modelMsg');el.className='msg'+(cls?' '+cls:'');el.innerHTML=html||'';updSteps()}
+const STEP_NAMES={type:'סוג חומרה',mfr:'יצרן',model:'דגם',sup:'ספק',serial:'סיריאלי',mrk:'מרכבה',war:'אחריות',loc:'מיקום'};
+function updSteps(){
+ const v=id=>($('#'+id).value||'').trim();
+ const st={type:!!form.type,mfr:!!form.mfr,model:!!v('model')&&(form.picked||form.manual),sup:!!v('sup'),serial:!!v('serial'),mrk:v('mrk').replace(/\D/g,'').length===5,war:!!form.war,loc:!!v('loc')};
+ let n=0;const miss=[];
+ for(const k in st){const el=document.querySelector(`.step[data-step="${k}"]`);if(el){el.classList.toggle('done',st[k]);if(st[k])el.classList.remove('need')}if(st[k])n++;else miss.push(k)}
+ const tot=Object.keys(st).length,all=!miss.length;
+ $('#prog').textContent=all?'הכל מוכן! אפשר להוסיף':n?`מולאו ${n} מתוך ${tot}. חסר: ${miss.map(k=>STEP_NAMES[k]).join(', ')}`:'מלא את כל השלבים כדי להוסיף';
+ $('#pfill').style.width=(n/tot*100)+'%';
+ const b=$('#submit');b.classList.toggle('locked',!all);b.setAttribute('aria-disabled',String(!all));
+ return miss;
+}
+document.addEventListener('input',e=>{if(e.target.closest('.form'))updSteps()});
+function modelMatches(q){
+ const qq=nk(q),all=catAll();
+ const inF=e=>(!form.type||e.t===form.type)&&(!form.mfr||lc(e.f)===lc(form.mfr));
+ if(!qq)return all.filter(inF).slice(0,80);
+ const hit=e=>nk(e.m).includes(qq)||nk(e.f+e.m).includes(qq)||nk(e.d).includes(qq);
+ const sc=e=>(nk(e.m)===qq?0:nk(e.m).startsWith(qq)?1:2)+(inF(e)?0:3);
+ return all.filter(hit).sort((a,b)=>sc(a)-sc(b)).slice(0,80);
+}
+let sugList=[],sugAct={model:-1,sup:-1};
+function showModelSug(){
+ if(readonly)return;const q=$('#model').value,list=modelMatches(q),box=$('#modelSug');sugList=list;sugAct.model=-1;
+ box.innerHTML=list.length?list.map((e,i)=>`<button type="button" role="option" id="ms${i}" data-sugi="${i}"${e.custom?' class="cst"':''}><b>${esc(e.m)}</b><small>${esc([e.f,e.d||e.t,e.s].filter(Boolean).join(' · '))}${e.custom?' · נוסף ידנית':''}</small>${e.custom?`<i class="x" data-delsug="${i}" title="הסר את הדגם מהרשימה">×</i>`:''}</button>`).join('')
+  :`<div class="none">${q.trim()?'אין דגם כזה ברשימה. לחץ + כדי להוסיף אותו':'אין דגמים לבחירה הזו. לחץ + כדי להוסיף'}</div>`;
+ box.hidden=false;$('#model').setAttribute('aria-expanded','true');
+}
+function showSupSug(){
+ if(readonly)return;const q=lc($('#sup').value.trim()),list=supsAll().filter(x=>!q||lc(x).includes(q)).slice(0,60),box=$('#supSug');
+ sugAct.sup=-1;box.innerHTML=list.length?list.map((x,i)=>`<button type="button" role="option" id="ss${i}" data-sup="${esc(x)}">${esc(x)}</button>`).join(''):'<div class="none">הספק לא ברשימה. לחץ + כדי להוסיף אותו</div>';
+ box.hidden=false;$('#sup').setAttribute('aria-expanded','true');
+}
+function moveSug(k,dir){const box=$('#'+k+'Sug');if(box.hidden)return false;const bs=[...box.querySelectorAll('button[role=option]')];if(!bs.length)return false;
+ sugAct[k]=(sugAct[k]+dir+bs.length)%bs.length;bs.forEach((b,i)=>b.classList.toggle('act',i===sugAct[k]));const a=bs[sugAct[k]];a.scrollIntoView({block:'nearest'});$('#'+k).setAttribute('aria-activedescendant',a.id);return true}
+function actSug(k){const box=$('#'+k+'Sug');if(box.hidden||sugAct[k]<0)return false;const a=box.querySelectorAll('button[role=option]')[sugAct[k]];if(!a)return false;a.click();return true}
+function askDelModel(e){
+ sheet(`<h3>להסיר את הדגם מהרשימה?</h3><p>${esc(e.m)} · ${esc(e.f)}${e.s?' · '+esc(e.s):''}. פריטים שכבר נשמרו לא ישתנו.</p><div class="row2"><button class="btn" type="button" data-close>ביטול</button><button class="btn dark" type="button" id="delCatOk">הסר</button></div>`);
+ $('#delCatOk').onclick=()=>{const i=meta.cat.findIndex(c=>c.m===e.m&&c.f===e.f&&c.s===e.s&&c.t===e.t);closeSheet();if(i<0||readonly)return;
+  meta.cat.splice(i,1);saveMeta({cat:meta.cat});if(form.picked&&form.model===e.m){form.picked=false;form.manual=true}toast('הדגם הוסר מהרשימה')};
+}
+function hideSug(k){const b=$('#'+k+'Sug');if(b&&!b.hidden){b.hidden=true;sugAct[k]=-1;$('#'+k).setAttribute('aria-expanded','false');$('#'+k).removeAttribute('aria-activedescendant')}}
+function pickModel(e){
+ form.model=e.m;form.desc=e.d||'';form.type=e.t;form.mfr=e.f;form.picked=true;form.manual=false;
+ if(e.s){form.sup=e.s;form.supAuto=true;$('#sup').value=e.s}
+ else if(form.supAuto||!$('#sup').value.trim()){form.sup='';form.supAuto=false;$('#sup').value=''}
+ $('#model').value=e.m;hideSug('model');renderChips();
+ if(e.s)setMsg('ok',`✓ הושלם אוטומטית: ${esc(e.t)}${e.d&&e.d!==e.t?' ('+esc(e.d)+')':''} · ${esc(e.f)} · ${esc(e.s)}`);
+ else setMsg('info',`✓ הושלם: ${esc(e.t)} · ${esc(e.f)}. לדגם הזה אין ספק ברשימה, בחר ספק ידנית.`);
+}
+function checkModelFit(){if(!form.picked)return;const ok=catAll().some(x=>x.m===form.model&&x.t===form.type&&lc(x.f)===lc(form.mfr));if(!ok){form.picked=false;form.model='';form.desc='';$('#model').value='';setMsg('','')}}
+function resolveModel(){
+ const text=$('#model').value.trim();
+ if(!text){form.model='';form.picked=false;form.manual=false;return true}
+ if((form.picked||form.manual)&&form.model===text)return true;
+ const ms=catAll().filter(e=>nk(e.m)===nk(text));
+ if(ms.length===1){pickModel(ms[0]);return true}
+ if(ms.length>1){
+  const fit=ms.filter(e=>(!form.mfr||lc(e.f)===lc(form.mfr))&&(!form.sup||lc(e.s)===lc(form.sup)));
+  if(fit.length===1){pickModel(fit[0]);return true}
+  showModelSug();setMsg('info','הדגם מופיע ברשימה יותר מפעם אחת (ספקים שונים). בחר את השורה הנכונה.');return false;
+ }
+ form.picked=false;form.manual=false;form.model='';
+ setMsg('err',`<b>הדגם "${esc(text)}" לא נמצא ברשימה.</b> לא ניתן להשלים אוטומטית את סוג החומרה, היצרן והספק.<div class="acts2"><button class="btn" type="button" data-mact="manual">מילוי ידני</button><button class="btn dark" type="button" data-mact="add">+ הוסף דגם לרשימה</button></div>`);
+ return false;
+}
+function manualModel(){const text=$('#model').value.trim();if(!text){$('#model').focus();return}form.model=text;form.manual=true;form.picked=false;hideSug('model');
+ setMsg('info',`מילוי ידני של הדגם "${esc(text)}": בחר סוג חומרה, יצרן וספק.`);$('#hw').scrollIntoView({block:'center',behavior:'smooth'})}
+function openAddModel(){
+ if(readonly)return;hideSug('model');
+ const opt=(arr,sel,ph)=>`<option value="">${ph}</option>`+arr.map(n=>`<option value="${esc(n)}"${lc(n)===lc(sel)?' selected':''}>${esc(n)}</option>`).join('');
+ const T=typesAll().map(h=>h.n),F=mfsAll().map(m=>m.n),S=supsAll();
+ if(form.type&&!T.includes(form.type))T.push(form.type);if(form.mfr&&!F.some(x=>lc(x)===lc(form.mfr)))F.push(form.mfr);
+ const sup=$('#sup').value.trim();if(sup&&!S.some(x=>lc(x)===lc(sup)))S.push(sup);
+ sheet(`<h3>דגם חדש לרשימה</h3><p>הדגם יישמר ברשימה, ובפעם הבאה בחירה שלו תשלים את השאר אוטומטית.</p>
+ <div class="frm"><label>דגם<input id="nm_m" maxlength="60" dir="auto" autocomplete="off" value="${esc($('#model').value.trim())}"></label>
+ <label>סוג חומרה<select id="nm_t">${opt(T,form.type,'בחר סוג…')}</select></label>
+ <label>יצרן<select id="nm_f">${opt(F,form.mfr,'בחר יצרן…')}</select></label>
+ <label>ספק<select id="nm_s">${opt(S,sup,'ללא / לא ידוע')}</select></label>
+ <label>תיאור (לא חובה)<input id="nm_d" maxlength="60" autocomplete="off" placeholder="למשל: לייזר שחור לבן"></label>
+ <p class="err" id="nm_err"></p></div>
+ <div class="row2"><button class="btn" type="button" data-close>ביטול</button><button class="btn dark" type="button" id="nm_save">שמור דגם</button></div>`);
+ if(!$('#nm_m').value)$('#nm_m').focus();
+ $('#sheetC').querySelectorAll('.frm input').forEach(i=>i.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();$('#nm_save').click()}}));
+ $('#nm_save').onclick=()=>{
+  const m=$('#nm_m').value.trim().replace(/\s+/g,' '),t=$('#nm_t').value,f=$('#nm_f').value,s=$('#nm_s').value,d=$('#nm_d').value.trim();
+  const err=m?!t?'בחר סוג חומרה':!f?'בחר יצרן':catAll().some(e=>nk(e.m)===nk(m)&&lc(e.f)===lc(f)&&lc(e.s)===lc(s))?'הדגם הזה כבר קיים ברשימה':meta.cat.length>=CAT_MAX?'הגעת למקסימום דגמים שאפשר להוסיף':'':'הקלד שם דגם';
+  if(err){$('#nm_err').textContent=err;return}
+  meta.cat.push({m,d,t,f,s});saveMeta({cat:meta.cat});closeSheet();
+  pickModel({m,d,t,f,s,id:'c'+(meta.cat.length-1)});toast('הדגם נוסף לרשימה');
+ };
+}
+$('#model').addEventListener('input',()=>{form.picked=false;form.manual=false;form.model='';setMsg('','');showModelSug()});
+$('#model').addEventListener('focus',showModelSug);
+$('#model').addEventListener('blur',()=>setTimeout(()=>{if(document.activeElement===$('#model'))return;hideSug('model');if($('#model').value.trim()&&!form.picked&&!form.manual)resolveModel()},150));
+$('#model').addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(!moveSug('model',e.key==='ArrowDown'?1:-1)){showModelSug();moveSug('model',1)}e.preventDefault();return}
+ if(e.key==='Enter'){e.preventDefault();if(actSug('model'))return;if(resolveModel()){hideSug('model');($('#sup').value.trim()?$('#serial'):$('#sup')).focus()}}else if(e.key==='Escape')hideSug('model')});
+$('#sup').addEventListener('input',()=>{form.sup=$('#sup').value;form.supAuto=false;showSupSug()});
+$('#sup').addEventListener('focus',()=>{const v=lc($('#sup').value.trim());if(!v||!supsAll().some(x=>lc(x)===v))showSupSug()});
+$('#sup').addEventListener('blur',()=>setTimeout(()=>{if(document.activeElement!==$('#sup'))hideSug('sup')},150));
+$('#sup').addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(!moveSug('sup',e.key==='ArrowDown'?1:-1)){showSupSug();moveSug('sup',1)}e.preventDefault();return}
+ if(e.key==='Enter'){e.preventDefault();if(actSug('sup')){$('#serial').focus();return}hideSug('sup');$('#serial').focus()}else if(e.key==='Escape')hideSug('sup')});
+document.querySelectorAll('.sug').forEach(b=>b.addEventListener('mousedown',e=>e.preventDefault()));
+document.addEventListener('click',e=>{if(!e.target.closest('.sec'))['model','sup'].forEach(hideSug)});
+
+document.addEventListener('click',e=>{
+ const t=e.target;
+ const dh=t.closest('[data-delhw]'),dm=t.closest('[data-delmf]');
+ if(dh){e.stopPropagation();if(readonly)return;meta.hw=meta.hw.filter(x=>x!==dh.dataset.delhw);if(form.type===dh.dataset.delhw)form.type='';saveMeta({hw:meta.hw});renderChips();return}
+ if(dm){e.stopPropagation();if(readonly)return;meta.mf=meta.mf.filter(x=>x!==dm.dataset.delmf);if(form.mfr===dm.dataset.delmf)form.mfr='';saveMeta({mf:meta.mf});renderChips();return}
+ const h=t.closest('[data-hw]');if(h){form.type=form.type===h.dataset.hw?'':h.dataset.hw;showAllMf=false;checkModelFit();renderChips();return}
+ const m=t.closest('[data-mf]');if(m){form.mfr=lc(form.mfr)===lc(m.dataset.mf)?'':m.dataset.mf;checkModelFit();renderChips();return}
+ const mo=t.closest('[data-more]');if(mo){if(mo.dataset.more==='hw')showAllHw=!showAllHw;else showAllMf=!showAllMf;renderChips();return}
+ const ds=t.closest('[data-delsug]');if(ds){e.stopPropagation();const x=sugList[+ds.dataset.delsug];if(x&&x.custom&&!readonly){hideSug('model');askDelModel(x)}return}
+ const sg=t.closest('[data-sugi]');if(sg){const x=sugList[+sg.dataset.sugi];if(x)pickModel(x);return}
+ const sp=t.closest('[data-sup]');if(sp){form.supAuto=false;form.sup=sp.dataset.sup;$('#sup').value=form.sup;hideSug('sup');updSteps();return}
+ const mm=t.closest('[data-mact]');if(mm){if(mm.dataset.mact==='manual')manualModel();else openAddModel();return}
+ const w=t.closest('[data-war]');if(w){form.war=form.war===w.dataset.war?'':w.dataset.war;renderChips();return}
+ if(t.closest('#modelPlus')){openAddModel();return}
+ if(t.closest('#supPlus')){addSupplier();return}
+ if(t.closest('#hwPlus')){$('#hwAdd').hidden=false;$('#hwNew').focus();return}
+ if(t.closest('#mfPlus')){$('#mfAdd').hidden=false;$('#mfNew').focus();return}
+ const sc=t.closest('[data-scan]');if(sc){scanTarget=sc.dataset.scan;$('#cam').value='';$('#cam').click();return}
+ const pc=t.closest('[data-pic]');if(pc){picTarget=pc.dataset.pic;$('#pic').value='';$('#pic').click();return}
+ const rp=t.closest('[data-rmpic]');if(rp){const k=rp.dataset.rmpic;if(form[k]&&!isUsed(form[k]))deletePhoto(form[k]);form[k]='';renderPhotoBoxes();return}
+ const vw=t.closest('[data-view]');if(vw){viewPhoto(vw.dataset.view,vw.dataset.title||'תמונה');return}
+ const ed=t.closest('[data-edit]');if(ed){startEdit(ed.dataset.edit);return}
+ const dl_=t.closest('[data-del]');if(dl_){removeItem(dl_.dataset.del);return}
+ const st=t.closest('[data-f]');if(st){filter=filter===st.dataset.f?'all':st.dataset.f;render();return}
+});
+$('#hwSave').onclick=()=>addCustom('hw');$('#mfSave').onclick=()=>addCustom('mf');
+$('#hwNew').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addCustom('hw')}};
+$('#mfNew').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addCustom('mf')}};
+
+/* ---------- inputs & keyboard-wedge scanners ---------- */
+const norm=s=>s.trim().toLowerCase();
+function checkDup(){const v=norm($('#serial').value);const d=v&&sorted().find(x=>x.id!==editId&&norm(x.serial||'')===v);dupOk=false;$('#submit').classList.remove('confirm');$('#submit').textContent=editId?'שמור שינויים':'הוסף לרשימה';$('#dupWarn').textContent=d?`הסיריאלי הזה כבר קיים בפריט מס' ${numOf(d.id)}`:''}
+$('#serial').addEventListener('input',checkDup);
+$('#serial').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#mrk').focus()}});
+let mrkT;
+function normMrk(){clearTimeout(mrkT);const el=$('#mrk'),d=el.value.replace(/\D/g,'');
+ if(d.length<=5){if(d!==el.value){el.value=d;updSteps()}return}
+ if(d.length>=12){el.value=d.slice(-5);toast(/^061000000000\d{5}$/.test(d)?'המרכבה נקלטה':`נלקחו 5 הספרות האחרונות מתוך ${d}`)}else el.value=d.slice(0,5);updSteps()}
+$('#mrk').addEventListener('input',e=>{const d=e.target.value.replace(/\D/g,'');if(d.length<=5){if(d!==e.target.value)e.target.value=d}else{clearTimeout(mrkT);mrkT=setTimeout(normMrk,150)}});
+document.querySelector('.mrkbox').addEventListener('click',()=>$('#mrk').focus());
+$('#mrk').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();normMrk();$('#loc').value.trim()?submit():$('#loc').focus()}});
+$('#loc').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit()}});
+$('#site').addEventListener('input',e=>{meta.site=e.target.value;saveMeta({site:meta.site})});
+$('#city').addEventListener('input',e=>{meta.city=e.target.value;saveMeta({city:meta.city})});
+function syncHeader(force){for(const k of ['site','city']){const el=$('#'+k);if(force||document.activeElement!==el)el.value=meta[k]||''}}
+
+function clearCodes(){$('#serial').value='';$('#mrk').value='';form.ps='';form.pm='';renderPhotoBoxes();checkDup();updSteps()}
+function submit(){
+ if(readonly)return;
+ if(uploading.ps||uploading.pm){toast('רגע, התמונה עדיין עולה…');return}
+ if(!resolveModel()){toast('הדגם לא נמצא ברשימה. בחר מילוי ידני או הוסף אותו');$('#model').scrollIntoView({block:'center',behavior:'smooth'});return}
+ normMrk();const miss=updSteps();
+ if(miss.length){
+  miss.forEach(k=>{const el=document.querySelector(`.step[data-step="${k}"]`);if(el){el.classList.remove('need');void el.offsetWidth;el.classList.add('need')}});
+  const first=document.querySelector(`.step[data-step="${miss[0]}"]`);if(first)first.scrollIntoView({block:'center',behavior:'smooth'});
+  toast(miss.length===1?`חסר עוד שלב אחד: ${STEP_NAMES[miss[0]]}`:`חסרים ${miss.length} שלבים: ${miss.map(k=>STEP_NAMES[k]).join(', ')}`);return}
+ const m5=$('#mrk').value.replace(/\D/g,'');
+ if(m5&&m5.length!==5){toast('במרכבה יש להזין בדיוק 5 ספרות');$('#mrk').focus();return}
+ const serial=$('#serial').value.trim(),mrk=m5?MRK_PRE+m5:'',loc=$('#loc').value.trim();
+ if($('#dupWarn').textContent&&!dupOk){dupOk=true;$('#submit').classList.add('confirm');$('#submit').textContent=editId?'שמור בכל זאת':'הוסף בכל זאת';return}
+ const old=editId&&items.find(x=>x.id===editId);
+ const it={id:editId||uid(),ts:old?old.ts:Date.now(),type:form.type,mfr:form.mfr,model:form.model||'',sup:$('#sup').value.trim(),serial,mrk,war:form.war,loc,ps:form.ps||'',pm:form.pm||''};
+ const n=old?numOf(old.id):items.length+1;lastNew=it.id;
+ if(old)for(const k of ['ps','pm'])if(old[k]&&old[k]!==it[k]&&old[k]!==it.ps&&old[k]!==it.pm)deletePhoto(old[k],BASE(),old.id);
+ putItem(it);toast(old?`פריט מס' ${n} עודכן`:`נוסף פריט מס' ${n}`);
+ editId=null;$('#editBar').hidden=true;clearCodes();
+ if(fine)$('#serial').focus();
+}
+$('#submit').onclick=submit;
+$('#reset').onclick=()=>clearForm();
+function startEdit(id){const x=items.find(i=>i.id===id);if(!x||readonly)return;setTab('add');dropUnsaved();editId=id;form={type:x.type||'',mfr:x.mfr||'',war:x.war||'',ps:x.ps||'',pm:x.pm||'',model:x.model||'',sup:x.sup||'',desc:'',picked:false,manual:false,supAuto:false};form.picked=!!x.model&&catAll().some(c=>c.m===x.model&&c.t===x.type&&lc(c.f)===lc(x.mfr));form.manual=!!x.model&&!form.picked;$('#model').value=x.model||'';$('#sup').value=x.sup||'';setMsg('','');$('#serial').value=x.serial||'';$('#mrk').value=mrk5(x.mrk);$('#loc').value=x.loc||'';$('#editTxt').textContent=`עריכת פריט מס' ${numOf(id)}`;$('#editBar').hidden=false;renderChips();renderPhotoBoxes();checkDup();updSteps();$('.form').scrollIntoView({behavior:'smooth'})}
+$('#editCancel').onclick=()=>{dropUnsaved();editId=null;$('#editBar').hidden=true;clearCodes()};
+function removeItem(id){const x=items.find(i=>i.id===id);if(!x||readonly)return;const n=numOf(id);if(editId===id){dropUnsaved();editId=null;$('#editBar').hidden=true;clearCodes()}const wsAt=ws,base=BASE();delItem(id);let undone=false;toast(`פריט מס' ${n} נמחק`,'בטל',()=>{if(ws!==wsAt){toast('כבר עברת לרשימה אחרת, אי אפשר לבטל');return}undone=true;putItem(x)});setTimeout(()=>{if(!undone&&ws===wsAt&&!items.some(i=>i.id===x.id))[x.ps,x.pm].forEach(r=>deletePhoto(r,base,x.id))},7500)}
+
+/* attach photo: store it, and read a barcode from it if the field is empty */
+$('#pic').addEventListener('change',async e=>{
+ const f=e.target.files&&e.target.files[0],k=picTarget;if(!f||!k)return;
+ const field=k==='ps'?'serial':'mrk';
+ uploading[k]=true;renderPhotoBoxes();const wsAt=ws,base=BASE();
+ try{const ref=await storePhoto(f);if(ws!==wsAt){uploading[k]=false;renderPhotoBoxes();deletePhoto(ref,base);return}if(form[k]&&!isUsed(form[k]))deletePhoto(form[k]);form[k]=ref;uploading[k]=false;renderPhotoBoxes();
+  if(!$('#'+field).value.trim()){try{const v=await decode(f);if(v.length===1){scanTarget=field;putCode(v[0]);toast('התמונה צורפה והברקוד נקרא ממנה')}else if(v.length>1){scanTarget=field;pickCode(v)}else toast('התמונה צורפה')}catch(err){toast('התמונה צורפה')}}
+  else toast('התמונה צורפה');
+ }catch(err){uploading[k]=false;renderPhotoBoxes();toast(err&&err.message==='full'?'אין מקום לתמונות נוספות במכשיר הזה':'העלאת התמונה נכשלה, נסה שוב')}
+});
+
+/* ---------- list ---------- */
+const sorted=()=>[...items].sort((a,b)=>(a.ts||0)-(b.ts||0));
+const numOf=id=>sorted().findIndex(x=>x.id===id)+1;
+function render(){
+ const all=sorted();
+ const c={all:all.length,yes:0,no:0,unk:0};all.forEach(x=>{if(x.war==='כן עם אחריות')c.yes++;else if(x.war==='ללא אחריות')c.no++;else c.unk++});
+ $('#stats').innerHTML=[['all','סה"כ פריטים'],['yes','עם אחריות'],['no','ללא אחריות'],['unk','לא ידוע']].map(([k,l])=>`<button type="button" class="stat" data-f="${k}" aria-pressed="${filter===k}"><b>${c[k]}</b><span>${l}</span></button>`).join('');
+ const counts={};all.forEach(x=>{const s=norm(x.serial||'');if(s)counts[s]=(counts[s]||0)+1});
+ const qq=norm(q);
+ const shown=all.map((x,i)=>({x,n:i+1})).filter(({x})=>{
+  if(filter==='yes'&&x.war!=='כן עם אחריות')return false;
+  if(filter==='no'&&x.war!=='ללא אחריות')return false;
+  if(filter==='unk'&&(x.war==='כן עם אחריות'||x.war==='ללא אחריות'))return false;
+  return !qq||[x.type,x.mfr,x.model,x.sup,x.serial,x.mrk,x.loc,x.war].some(v=>norm(String(v||'')).includes(qq));
+ });
+ $('#rows').innerHTML=shown.length?shown.map(({x,n})=>`<li class="row${x.id===lastNew?' new':''}">
+  <div class="num">${n}</div>
+  <div><div class="t">${svg(iconFor(x.type))}<span>${esc(x.type)}</span>${x.mfr?`<span class="mf">${esc(x.mfr)}</span>`:''}${x.model?`<span class="md">${esc(x.model)}</span>`:''}${counts[norm(x.serial||'')]>1?'<span class="dup">סיריאלי כפול</span>':''}</div>
+  <dl>${x.sup?`<div><dt>ספק</dt><dd>${esc(x.sup)}</dd></div>`:''}<div><dt>סיריאלי</dt><dd>${esc(x.serial)||'—'}</dd></div><div><dt>מרכבה</dt><dd>${mrkHtml(x.mrk)||'—'}</dd></div><div><dt>מיקום</dt><dd>${esc(x.loc)||'—'}</dd></div></dl>${x.ps||x.pm?`<div class="thumbs">${[['ps','סיריאלי'],['pm','מרכבה']].filter(([k])=>x[k]).map(([k,l])=>{const u=photoUrl(x[k]);return `<button type="button" class="tb" data-view="${esc(x[k])}" data-title="${esc(l+' · פריט '+n)}" aria-label="תמונת ${l}">${u?`<img src="${esc(u)}" alt="" loading="lazy">`:''}<span>${l}</span></button>`}).join('')}</div>`:''}</div>
+  <div class="side"><span class="war ${WCLS.get(x.war)||'w-none'}">${esc(x.war)||'אחריות לא סומנה'}</span>${readonly?'':`<div class="acts"><button type="button" data-edit="${esc(x.id)}" aria-label="עריכת פריט ${n}">${svg(ICON.edit)}<span>עריכה</span></button><button type="button" data-del="${esc(x.id)}" aria-label="מחיקת פריט ${n}">${svg(ICON.del)}<span>מחיקה</span></button></div>`}</div>
+ </li>`).join(''):`<li class="empty">${mode==='wait'?'טוען את הרשימה…':all.length?'אין פריטים שמתאימים לחיפוש.':`${EMPTY_ART}<b>הרשימה ריקה</b><span>עבור ל"הוספה", בחר מה הפריט, וסרוק את המדבקה.</span>`}</li>`;
+ const tc=$('#tabCount');if(tc){if(String(all.length)!==tc.textContent&&lastNew){tc.classList.remove('bump');void tc.offsetWidth;tc.classList.add('bump')}tc.textContent=all.length}
+ $('#lcount').textContent=all.length?`${all.length} פריטים`:'';
+ lastNew=null;
+ const locs=[...new Set(all.map(x=>(x.loc||'').trim()).filter(Boolean))];
+ $('#locs').innerHTML=locs.map(l=>`<option value="${esc(l)}"></option>`).join('');
+}
+$('#q').addEventListener('input',e=>{q=e.target.value;render()});
+
+/* ---------- toast & sheet ---------- */
+let tt;
+function toast(msg,act,fn){$('#toastT').textContent=msg;const b=$('#toastB');b.hidden=!act;if(act){b.textContent=act;b.onclick=()=>{fn();$('#toast').classList.remove('show')}}$('#toast').classList.add('show');clearTimeout(tt);tt=setTimeout(()=>$('#toast').classList.remove('show'),act?6000:2600)}
+function sheet(html){$('#sheetC').innerHTML=html;$('#sheet').hidden=false}
+function closeSheet(){$('#sheet').hidden=true}
+$('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet'||e.target.closest('[data-close]'))closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet()});
+
+/* ---------- scanning by photo ---------- */
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+function rotate(c){const r=document.createElement('canvas');r.width=c.height;r.height=c.width;const g=r.getContext('2d');g.translate(r.width/2,r.height/2);g.rotate(Math.PI/2);g.drawImage(c,-c.width/2,-c.height/2);return r}
+async function decode(file){
+ const c=await shrink(file,1800);
+ if('BarcodeDetector' in window){try{const r=await new BarcodeDetector().detect(c);const v=[...new Set(r.map(x=>x.rawValue).filter(Boolean))];if(v.length)return v}catch(e){}}
+ if(!window.ZXing)await loadScript(ZX_SRC);
+ const Z=window.ZXing,hints=new Map();hints.set(Z.DecodeHintType.TRY_HARDER,true);const rd=new Z.MultiFormatReader();rd.setHints(hints);
+ for(const cv of [c,rotate(c)]){try{const bm=new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(cv)));return [rd.decodeWithState(bm).getText()]}catch(e){}}
+ return [];
+}
+function pickCode(v){sheet(`<h3>נמצאו כמה ברקודים</h3><p>בחר את הערך הנכון</p><div class="opts">${v.map(x=>`<button type="button" data-pick="${esc(x)}">${esc(x)}</button>`).join('')}</div><div class="row2"><button class="btn" type="button" data-close>ביטול</button></div>`)}
+function putCode(v){
+ if(scanTarget==='mrk'){const d=String(v).replace(/\D/g,'');if(d.length<5){toast('הברקוד לא מכיל מספר מרכבה, הקלד ידנית');return}$('#mrk').value=d.slice(-5);updSteps();toast(/^061000000000\d{5}$/.test(d)||d.length===5?'המרכבה נקלטה':`נלקחו 5 הספרות האחרונות מתוך ${String(v).trim()}`);return}
+ $('#'+scanTarget).value=String(v).trim();checkDup();updSteps();toast('הברקוד נקלט')}
+$('#cam').addEventListener('change',async e=>{
+ const f=e.target.files&&e.target.files[0];if(!f||!scanTarget)return;
+ const btn=document.querySelector(`[data-scan="${scanTarget}"]`);btn.classList.add('busy');
+ try{const v=await decode(f);
+  if(!v.length)toast('לא זוהה ברקוד. צלם קרוב וחד יותר, או הקלד ידנית');
+  else if(v.length===1)putCode(v[0]);
+  else pickCode(v);
+ }catch(err){toast('הסריקה לא הצליחה כאן, אפשר להקליד ידנית')}
+ btn.classList.remove('busy');
+});
+$('#sheetC').addEventListener('click',e=>{const p=e.target.closest('[data-pick]');if(p){putCode(p.dataset.pick);closeSheet()}});
+
+/* ---------- export ---------- */
+async function imgFor(ref){
+ const u=await ensurePhoto(ref);if(!u)return null;let du=u;
+ if(!u.startsWith('data:')){const r=await fetch(u);if(!r.ok)return null;const bl=await r.blob();du=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(bl)})}
+ const img=await loadImg(du);
+ const W=1500,H=1000,pad=40,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+ g.fillStyle='#fff';g.fillRect(0,0,W,H);
+ const k=Math.min((W-2*pad)/img.naturalWidth,(H-2*pad)/img.naturalHeight),w=img.naturalWidth*k,h=img.naturalHeight*k;
+ g.drawImage(img,(W-w)/2,(H-h)/2,w,h);
+ return {b64:c.toDataURL('image/jpeg',.86).split(',')[1],ext:'jpeg'};
+}
+async function buildExcel(d){
+ const E=window.ExcelJS,wb=new E.Workbook();wb.creator='רשימת גריטה';
+ const ws=wb.addWorksheet('רשימת גריטה',{views:[{rightToLeft:true,state:'frozen',ySplit:5}],pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,printTitlesRow:'1:5'},headerFooter:{oddFooter:'&Cעמוד &P מתוך &N'}});
+ ws.columns=[6,16,14,18,16,22,22,15,24,17,17].map(w=>({width:w}));
+ const F={name:'Arial',size:11},thin={style:'thin',color:{argb:'FFBFBFBF'}},bd={top:thin,left:thin,bottom:thin,right:thin};
+ const fill=c=>({type:'pattern',pattern:'solid',fgColor:{argb:c}});
+ ws.mergeCells('A1:K1');const t=ws.getCell('A1');t.value='רשימת גריטה';t.font={name:'Arial',size:18,bold:true,color:{argb:'FFFFFFFF'}};t.fill=fill('FFE4002B');t.alignment={horizontal:'center',vertical:'middle'};ws.getRow(1).height=34;
+ const lab=(a,v)=>{const c=ws.getCell(a);c.value=v;c.font={...F,bold:true};c.alignment={horizontal:'right',vertical:'middle'}};
+ const val=(a,v)=>{const c=ws.getCell(a);c.value=v;c.font={...F,size:12,bold:true};c.border={bottom:{style:'medium',color:{argb:'FF111111'}}};c.alignment={horizontal:'center',vertical:'middle'}};
+ lab('A2','שם האתר:');ws.mergeCells('B2:C2');val('B2',meta.site||'');
+ lab('D2','עיר:');ws.mergeCells('E2:F2');val('E2',meta.city||'');
+ lab('H2','תאריך:');ws.mergeCells('I2:J2');val('I2',new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())));ws.getCell('I2').numFmt='dd/mm/yyyy';
+ ws.getRow(2).height=26;
+ const all=sorted();
+ ws.mergeCells('A3:B3');lab('A3','סה"כ פריטים:');const tc=ws.getCell('C3');tc.value=all.length;tc.font={...F,bold:true,size:12};tc.alignment={horizontal:'right'};
+ [...HEAD,'תמונת סיריאלי','תמונת מרכבה'].forEach((h,i)=>{const c=ws.getCell(5,i+1);c.value=h;c.font={...F,bold:true,color:{argb:'FFFFFFFF'}};c.fill=fill('FF1F1F1F');c.border=bd;c.alignment={horizontal:'center',vertical:'middle',wrapText:true}});
+ ws.getRow(5).height=24;
+ const WF=new Map([['כן עם אחריות',['FFC6EFCE','FF006100']],['ללא אחריות',['FFFFC7CE','FF9C0006']],['לא ידוע',['FFEDEDED','FF404040']]]);
+ for(let i=0;i<all.length;i++){
+  const x=all[i],r=6+i,vals=[i+1,x.type,x.mfr,x.model,x.sup,x.serial,x.mrk,x.war,x.loc,'',''];
+  vals.forEach((v,j)=>{const c=ws.getCell(r,j+1);c.value=v===''?null:v;c.font={...F};c.border=bd;c.alignment={horizontal:'center',vertical:'middle',wrapText:true};if(j===3||j===5||j===6)c.numFmt='@'});
+  const mm=MRK_RE.exec(x.mrk||'');if(mm){ws.getCell(r,7).value={richText:[{text:MRK_PRE,font:{...F,color:{argb:'FF666666'}}},{text:mm[1],font:{...F,size:13,bold:true}}]}}
+  const wf=WF.get(x.war);if(wf){const c=ws.getCell(r,8);c.fill=fill(wf[0]);c.font={...F,bold:true,color:{argb:wf[1]}}}
+  let pic=false;
+  for(const [k,col] of [['ps',9],['pm',10]]){if(!x[k])continue;try{const im=await imgFor(x[k]);if(!im)continue;const id=wb.addImage({base64:im.b64,extension:im.ext});ws.addImage(id,{tl:{col,row:r-1},br:{col:col+1,row:r}});pic=true}catch(e){}}
+  ws.getRow(r).height=pic?62:20;
+ }
+ ws.autoFilter={from:'A5',to:'K'+(5+Math.max(1,all.length))};
+ return await wb.xlsx.writeBuffer();
+}
+function rowsOut(){return sorted().map((x,i)=>[i+1,x.type||'',x.mfr||'',x.model||'',x.sup||'',x.serial||'',x.mrk||'',x.war||'',x.loc||''])}
+$('#xlsx').onclick=async()=>{
+ if(!items.length){toast('הרשימה ריקה');return}
+ if(!dl){toast('הורדת קבצים לא זמינה כאן. השתמש ב"העתק טבלה" והדבק באקסל');return}
+ const b=$('#xlsx');b.classList.add('busy');
+ const d0=new Date(),name=`רשימת גריטה${meta.site?' - '+meta.site:''} ${dstr(d0).replace(/\//g,'-')}.xlsx`.replace(/[\\/:*?"<>|\u0000-\u001f\u007f]/g,' ');
+ let lib=!!window.ExcelJS;
+ for(const s of EXCELJS_SRC){if(lib)break;try{await loadScript(s);lib=!!window.ExcelJS}catch(e){}}
+ if(lib){
+  try{toast('מכין את הקובץ…');const buf=await buildExcel(d0);await dl.save({filename:name,data:new Uint8Array(buf)});toast('קובץ האקסל נשמר')}
+  catch(e){if(!e||e.code!=='declined')toast('ייצוא הקובץ לא הצליח, נסה שוב')}
+  b.classList.remove('busy');return;
+ }
+ try{
+  if(!window.XLSX)await loadScript(XLSX_SRC);
+  const X=window.XLSX,r=rowsOut(),d=new Date();
+  const aoa=[['רשימת גריטה'],['שם האתר',meta.site||'','','עיר',meta.city||'','תאריך',dstr(d)],['סה"כ פריטים',r.length],[],HEAD,...r];
+  const ws=X.utils.aoa_to_sheet(aoa);
+  ws['!cols']=[6,16,14,18,16,22,22,15,24].map(w=>({wch:w}));
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:8}}];
+  ws['!autofilter']={ref:`A5:I${5+r.length}`};
+  const wb=X.utils.book_new();wb.Workbook={Views:[{RTL:true}]};
+  X.utils.book_append_sheet(wb,ws,'רשימת גריטה');
+  const out=X.write(wb,{bookType:'xlsx',type:'array'});
+  const name=`רשימת גריטה${meta.site?' - '+meta.site:''} ${dstr(d).replace(/\//g,'-')}.xlsx`.replace(/[\\/:*?"<>|\u0000-\u001f\u007f]/g,' ');
+  await dl.save({filename:name,data:new Uint8Array(out)});toast('קובץ האקסל נשמר');
+ }catch(e){if(!e||e.code!=='declined')toast('ייצוא הקובץ לא הצליח, נסה שוב')}
+ b.classList.remove('busy');
+};
+$('#copy').onclick=async()=>{
+ if(!items.length){toast('הרשימה ריקה');return}
+ const head=[['רשימת גריטה'],['שם האתר',meta.site||'','עיר',meta.city||'','תאריך',dstr(new Date())],[],HEAD];
+ const cell=v=>{let t=String(v).replace(/[\t\r\n]/g,' ');if(/^[=+@]/.test(t)||/^-[^\d]/.test(t))t="'"+t;return t};
+ const tsv=[...head,...rowsOut()].map(r=>r.map(cell).join('\t')).join('\n');
+ try{await navigator.clipboard.writeText(tsv);toast('הטבלה הועתקה. הדבק אותה באקסל')}catch(e){toast('ההעתקה לא אושרה בדפדפן הזה')}
+};
+function clearForm(){document.querySelectorAll('.step.need').forEach(e=>e.classList.remove('need'));dropUnsaved();form={type:'',mfr:'',war:'',ps:'',pm:'',model:'',sup:'',desc:'',picked:false,manual:false,supAuto:false};$('#model').value='';$('#sup').value='';setMsg('','');['model','sup'].forEach(hideSug);$('#loc').value='';editId=null;$('#editBar').hidden=true;clearCodes();renderChips()}
+async function clearList(){
+ const snap=[...items],base=BASE(),m=mode;dropUnsaved();renderPhotoBoxes();let failed=0;
+ if(m==='db'){for(let i=0;i<snap.length;i+=8){await Promise.all(snap.slice(i,i+8).map(x=>db.collection(base+'/items').doc(x.id).delete().catch(()=>{failed++})))}}
+ else{items=[];lsSave();render()}
+ if(!failed){const refs=new Set(snap.flatMap(x=>[x.ps,x.pm]).filter(Boolean));const keep=items;items=[];refs.forEach(r=>deletePhoto(r,base));items=keep}
+ return failed;
+}
+function clearSite(){meta.site='';meta.city='';syncHeader(true);saveMeta({site:'',city:''})}
+const CLR={
+ form:{t:'נקה טופס',d:'מנקה את השדות שמילאת בטופס. הרשימה לא משתנה.',safe:1},
+ site:{t:'נקה פרטי אתר',d:'מנקה את שם האתר והעיר.'},
+ list:{t:'נקה את כל הפריטים',d:'מוחק את כל הפריטים ברשימה, כולל התמונות.',big:1},
+ all:{t:'איפוס מלא',d:'מוחק פריטים, תמונות, פרטי אתר, וכל מה שהוספת: סוגים, יצרנים, דגמים וספקים.',big:1}
+};
+const whose=()=>ws==='team'&&mode==='db'?'מרשימת הצוות, לכל מי שמשתמש בה':'מהרשימה שלך';
+$('#clear').onclick=()=>{
+ sheet(`<h3>נקה נתונים</h3><p>מה לנקות?</p><div class="opts">${Object.entries(CLR).map(([k,o])=>`<button type="button" data-clr="${k}" class="${o.big?'danger':''}" ${readonly&&!o.safe?'disabled':''}>${o.t}<small>${o.d}</small></button>`).join('')}</div><div class="row2"><button class="btn" type="button" data-close>ביטול</button></div>`);
+};
+$('#sheetC').addEventListener('click',e=>{
+ const c=e.target.closest('[data-clr]');if(!c||c.disabled)return;const k=c.dataset.clr,o=CLR[k];
+ if(k==='form'){closeSheet();clearForm();toast('הטופס נוקה');return}
+ if(readonly)return;
+ const n=items.length;
+ const what=k==='site'?'שם האתר והעיר יימחקו':k==='list'?`${n} פריטים יימחקו ${whose()}`:`כל הנתונים יימחקו ${whose()}: ${n} פריטים, תמונות, פרטי אתר ורשימות שהוספת`;
+ sheet(`<h3>${o.t}?</h3><p>${esc(what)}.${o.big&&n?' מומלץ לייצא לאקסל לפני כן.':''} אי אפשר לבטל את הפעולה.</p><div class="row2"><button class="btn" type="button" data-close>ביטול</button><button class="btn dark" type="button" data-doclr="${k}">כן, נקה</button></div>`);
+});
+$('#sheetC').addEventListener('click',async e=>{
+ const c=e.target.closest('[data-doclr]');if(!c||readonly)return;const k=c.dataset.doclr;closeSheet();
+ if(k==='site'){clearSite();toast('פרטי האתר נוקו');return}
+ const failed=await clearList();
+ if(k==='all'&&!failed){clearForm();meta.mf=[];meta.hw=[];meta.sup=[];meta.cat=[];meta.site='';meta.city='';syncHeader(true);renderChips();saveMeta({site:'',city:'',mf:[],hw:[],sup:[],cat:[]})}
+ toast(failed?'חלק מהנתונים לא נמחקו, נסה שוב':k==='all'?'כל הנתונים נוקו':'הרשימה נוקתה');
+});
+
+/* ---------- phone tabs ---------- */
+/* phones: when the on-screen keyboard really opens (the visible area shrinks), give it the room */
+const isField=el=>!!el&&el.matches&&el.matches('input:not([type=file]),select');
+const vh=()=>window.visualViewport?window.visualViewport.height:window.innerHeight;
+let baseH=vh(),kbT;
+function kb(){const h=vh();if(!isField(document.activeElement)){baseH=Math.max(h,100);document.body.classList.remove('typing');return}document.body.classList.toggle('typing',h<baseH-150)}
+if(window.visualViewport)window.visualViewport.addEventListener('resize',kb);
+window.addEventListener('resize',kb);
+window.addEventListener('orientationchange',()=>{baseH=0;setTimeout(()=>{baseH=vh();kb()},400)});
+document.addEventListener('focusin',()=>{clearTimeout(kbT);kbT=setTimeout(kb,350)});
+document.addEventListener('focusout',()=>{clearTimeout(kbT);kbT=setTimeout(kb,150)});
+function setTab(t){document.body.classList.toggle('view-add',t==='add');document.body.classList.toggle('view-list',t==='list');
+ document.querySelectorAll('[data-tab]').forEach(b=>{if(b.dataset.tab===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});if(b0())window.scrollTo({top:0})}
+const b0=()=>matchMedia('(max-width:899px)').matches;
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+document.querySelectorAll('[data-tab]').forEach(b=>{if(b.dataset.tab==='add')b.setAttribute('aria-current','page')});
+
+/* ---------- install as an app (PWA) ---------- */
+let installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e});
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ---------- account: sign out, team management (owner) ---------- */
+$('#signOut').onclick=()=>{sheet(`<h3>להתנתק?</h3><p>הרשימה שלך שמורה בענן ותחכה לך בהתחברות הבאה.</p><div class="row2"><button class="btn" type="button" data-close>ביטול</button><button class="btn dark" type="button" id="soOk">התנתקות</button></div>`);$('#soOk').onclick=()=>window.APP_SIGN_OUT&&window.APP_SIGN_OUT()};
+const EMAIL_RE=/^[^\s@<>"']{1,64}@[^\s@<>"']{1,190}\.[a-z]{2,}$/i;
+$('#teamAdmin').onclick=async()=>{
+ if(!db)return;let acc={admins:[],members:[]};
+ const clean=a=>Array.isArray(a)?[...new Set(a.filter(x=>typeof x==='string').map(x=>x.trim().toLowerCase()).filter(x=>EMAIL_RE.test(x)))]:[];
+ try{const s=await db.doc('config/access').get();if(s.exists){const v=s.data()||{};acc={admins:clean(v.admins),members:clean(v.members)}}}catch(e){toast('אין לך הרשאה לניהול הצוות');return}
+ const save=async()=>{try{await db.doc('config/access').set({admins:acc.admins,members:acc.members});return true}catch(e){toast('השמירה נכשלה');return false}};
+ const row=(kind,m,i)=>`<button type="button" data-acdel="${kind}:${i}" dir="ltr">${esc(m)}<small dir="rtl">לחץ להסרה</small></button>`;
+ const draw=()=>{sheet(`<h3>ניהול צוות</h3>
+  <p><b>מנהלים</b> רואים ועורכים את רשימת הצוות ויכולים להוסיף ולהסיר מנהלים וחברי צוות. <b>חברי צוות</b> רואים ועורכים את רשימת הצוות. כל אחד אחר עובד רק ברשימה האישית שלו.</p>
+  <div class="frm"><label>מייל<input id="acNew" type="email" maxlength="254" autocomplete="off" dir="ltr" placeholder="name@example.com"></label><p class="err" id="acErr"></p></div>
+  <div class="row2" style="justify-content:flex-start;margin-bottom:16px"><button class="btn dark" type="button" id="acAddM">+ חבר צוות</button><button class="btn" type="button" id="acAddA">+ מנהל</button></div>
+  <h3 style="font-size:18px">מנהלים</h3>
+  <div class="opts"><p class="note" style="margin:0">החשבון הראשי מוגדר בכללי האבטחה ותמיד מנהל. הוא לא מופיע כאן ולא נשמר בשום מקום לפי מייל.</p>${acc.admins.map((m,i)=>row('a',m,i)).join('')}</div>
+  <h3 style="font-size:18px">חברי צוות</h3>
+  <div class="opts">${acc.members.length?acc.members.map((m,i)=>row('m',m,i)).join(''):'<p class="note" style="margin:0">עוד אין חברי צוות.</p>'}</div>
+  <div class="row2"><button class="btn" type="button" data-close>סגור</button></div>`);
+  const add=async kind=>{const v=$('#acNew').value.trim().toLowerCase();
+   if(!EMAIL_RE.test(v)){$('#acErr').textContent='כתובת מייל לא תקינה';return}
+   const key=kind==='a'?'admins':'members',other=kind==='a'?'members':'admins';
+   if(acc[key].includes(v)){$('#acErr').textContent='המייל כבר ברשימה הזו';return}
+   if(acc[key].length>=(kind==='a'?50:300)){$('#acErr').textContent='הגעת למקסימום';return}
+   const before=JSON.stringify(acc);acc[key].push(v);acc[other]=acc[other].filter(x=>x!==v);
+   if(await save()){toast(kind==='a'?'נוסף כמנהל':'נוסף לצוות');draw()}else acc=JSON.parse(before)};
+  $('#acAddM').onclick=()=>add('m');$('#acAddA').onclick=()=>add('a');
+  $('#acNew').onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();add('m')}};
+  $('#sheetC').querySelectorAll('[data-acdel]').forEach(b=>b.onclick=async()=>{const [k,i]=b.dataset.acdel.split(':'),key=k==='a'?'admins':'members',m=acc[key][+i];
+   const before=JSON.stringify(acc);acc[key].splice(+i,1);if(await save()){toast(`${m} הוסר`);draw()}else acc=JSON.parse(before)});
+ };
+ draw();
+};
+
+/* ---------- open / install on a phone ---------- */
+$('#mobile').onclick=async()=>{
+ sheet(`<h3>פתיחה והתקנה בנייד</h3>
+ <div class="qr" id="qr" aria-label="קוד QR לקישור"></div>
+ <p class="lnk">${esc(APP_URL)}</p>
+ <div class="row2" style="justify-content:center;margin-bottom:16px"><button class="btn dark" type="button" id="cpLink">העתק קישור</button></div>
+ <ol class="steps">
+  <li>סרוק את הקוד במצלמת הטלפון, או שלח לעצמך את הקישור.</li>
+  <li>הקישור ייפתח בדפדפן של הטלפון. התחבר עם גוגל או עם מייל וסיסמה.</li>
+  <li><b>אנדרואיד (Chrome):</b> תפריט ⋮ ← "התקנת אפליקציה" או "הוספה למסך הבית".</li>
+  <li><b>אייפון (Safari):</b> כפתור השיתוף ← "הוספה למסך הבית".</li>
+  <li>מעכשיו יש אייקון על המסך שפותח את הרשימה כמו אפליקציה, גם בלי קליטה.</li>
+ </ol>
+ ${installEvt?'<div class="row2" style="justify-content:center;margin-bottom:14px"><button class="btn dark" type="button" id="doInstall">התקן את האפליקציה עכשיו</button></div>':''}
+ <p class="note">כל אחד מקבל רשימה אישית משלו. כדי שעובדים יעבדו גם על רשימת הצוות, המנהל מוסיף את המייל שלהם ב"ניהול צוות".</p>
+ <div class="row2"><button class="btn" type="button" data-close>סגור</button></div>`);
+ if($('#doInstall'))$('#doInstall').onclick=async()=>{try{installEvt.prompt();await installEvt.userChoice}catch(e){}installEvt=null;closeSheet()};
+ $('#cpLink').onclick=async()=>{try{await navigator.clipboard.writeText(APP_URL);toast('הקישור הועתק')}catch(e){toast('סמן את הקישור והעתק ידנית')}};
+ try{if(!window.QRCode)await loadScript(QR_SRC);const el=$('#qr');if(el){el.innerHTML='';new window.QRCode(el,{text:APP_URL,width:200,height:200,colorDark:'#111111',colorLight:'#ffffff',correctLevel:window.QRCode.CorrectLevel.M})}}
+ catch(e){const el=$('#qr');if(el)el.remove()}
+};
+
+/* ---------- start ---------- */
+async function start(){
+ renderChips();render();
+ if(!(window.claude&&window.claude.use)){mode='local';lsLoad();syncHeader();renderChips();render();setStatus('local');return}
+ const [d,dn,as,us]=await Promise.all(['db','downloads','assets','user'].map(n=>window.claude.use(n).catch(()=>null)));
+ dl=dn;assets=as;userCap=us;
+ if(us){try{const me=await us.me();uidMe=typeof me.id==='string'&&SAFE_ID.test(me.id)&&!/^\.+$/.test(me.id)?me.id:null;canWrite=await us.can('data.write');showMe(me)}catch(e){}}
+ if(!d){mode='local';lsLoad();syncHeader();renderChips();render();setStatus('local');return}
+ db=d;
+ // outside Claude every signed-in person may always write their own list; canWrite only means team membership
+ try{const p=localStorage.getItem('scrap-ws');if(p==='team'||p==='mine')ws=p}catch(e){}
+ if(canWrite===true)$('#wsBar').hidden=false;else ws='mine';
+ if(us&&await us.isOwner())$('#teamAdmin').hidden=false;
+ $('#signOut').hidden=false;
+ connect();
+}
+function showMe(me){
+ const el=$('#who');if(!el)return;
+ const nm=me.name||'',em=me.email||'';
+ if(!nm&&!em){el.hidden=true;return}
+ el.hidden=false;$('#whoImg').src=me.avatarUrl;$('#whoName').textContent=nm?`שלום, ${nm}`:'מחובר';$('#whoMail').textContent=em;
+}
+function renderWs(){document.querySelectorAll('[data-ws]').forEach(b=>{const on=b.dataset.ws===ws;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)})}
+function connect(){
+ if(metaTimer){clearTimeout(metaTimer);metaTimer=null;if(pendingMeta)pendingMeta()}metaDirty=false;
+ unsubs.forEach(u=>{try{u()}catch(e){}});unsubs=[];clearTimeout(loadTimer);
+ items=[];meta={site:'',city:'',mf:[],hw:[],sup:[],cat:[]};editId=null;$('#editBar').hidden=true;
+ readonly=ws==='team'&&canWrite===false;applyRO();renderWs();
+ if(ws==='mine'&&(!uidMe||personalRefused)){mode='local';lsLoad();syncHeader(true);renderChips();render();setStatus('local');return}
+ mode='db';syncHeader(true);renderChips();
+ const wasMode=mode;mode='wait';render();mode=wasMode;setStatus('wait');
+ loadTimer=setTimeout(()=>setStatus('slow'),10000);
+ unsubs.push(db.collection(BASE()+'/items').onSnapshot(s=>{
+  if(!s.metadata.fromCache){clearTimeout(loadTimer);setStatus('db')}
+  items=s.docs.map(x=>cleanItem(x.data(),x.id,'ad'));
+  render();checkDup();
+ },()=>{clearTimeout(loadTimer);setStatus('err');render()}));
+ unsubs.push(db.doc(BASE()).onSnapshot(s=>{
+  if(metaDirty)return;
+  meta=cleanMeta(s.exists?s.data():{});
+  syncHeader();renderChips();
+ },()=>{}));
+}
+document.querySelectorAll('[data-ws]').forEach(b=>b.addEventListener('click',()=>{
+ if(b.dataset.ws===ws)return;clearForm();ws=b.dataset.ws;try{localStorage.setItem('scrap-ws',ws)}catch(e){}connect();
+ toast(ws==='team'?'עברת לרשימת הצוות':'עברת לרשימה האישית שלך');
+}));
+start();
+}
+</script>
+</body>
+</html>

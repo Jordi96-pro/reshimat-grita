@@ -1,0 +1,75 @@
+rules_version = '2';
+// כללי אבטחה לרשימת גריטה.
+// הבעלים מזוהה לפי מזהה משתמש אנונימי (UID) בלבד – בלי מייל. מנהלים וחברי צוות נוספים
+// נשמרים במסמך config/access, שרק מנהלים יכולים לקרוא ולשנות.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isRoot() { return signedIn() && request.auth.uid == 'OWNER_UID'; }
+    function verifiedEmail() {
+      return signedIn() && request.auth.token.email is string && request.auth.token.email_verified == true;
+    }
+    function accessDoc() { return /databases/$(database)/documents/config/access; }
+    function accessList(field) {
+      return exists(accessDoc()) ? get(accessDoc()).data.get(field, []) : [];
+    }
+    function isAdmin() {
+      return isRoot() || (verifiedEmail() && request.auth.token.email.lower() in accessList('admins'));
+    }
+    function isMember() {
+      return isAdmin() || (verifiedEmail() && request.auth.token.email.lower() in accessList('members'));
+    }
+    function shortStr(v, n) { return v is string && v.size() <= n; }
+    function listMax(v, n) { return v is list && v.size() <= n; }
+
+    // מי מנהל ומי חבר צוות: רק מנהלים רואים ומשנים.
+    match /config/access {
+      allow read: if isAdmin();
+      allow write: if isAdmin()
+        && request.resource.data.keys().hasOnly(['admins', 'members'])
+        && listMax(request.resource.data.get('admins', []), 50)
+        && listMax(request.resource.data.get('members', []), 300);
+    }
+
+    // רשימה אישית: רק בעל החשבון.
+    match /data/users/{uid}/{rest=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // רשימת הצוות: מנהלים וחברי צוות.
+    match /lists/main {
+      allow read: if isMember();
+      allow write: if isMember()
+        && request.resource.data.keys().hasOnly(['site', 'city', 'mf', 'hw', 'sup', 'cat'])
+        && shortStr(request.resource.data.get('site', ''), 120)
+        && shortStr(request.resource.data.get('city', ''), 120)
+        && listMax(request.resource.data.get('mf', []), 100)
+        && listMax(request.resource.data.get('hw', []), 100)
+        && listMax(request.resource.data.get('sup', []), 100)
+        && listMax(request.resource.data.get('cat', []), 300);
+    }
+    match /lists/main/items/{id} {
+      allow read, delete: if isMember();
+      allow create, update: if isMember()
+        && request.resource.data.keys().hasOnly(['id', 'ts', 'type', 'mfr', 'model', 'sup', 'serial', 'mrk', 'war', 'loc', 'ps', 'pm'])
+        && request.resource.data.ts is number
+        && shortStr(request.resource.data.get('type', ''), 80) && shortStr(request.resource.data.get('mfr', ''), 80)
+        && shortStr(request.resource.data.get('model', ''), 80) && shortStr(request.resource.data.get('sup', ''), 80)
+        && shortStr(request.resource.data.get('serial', ''), 80) && shortStr(request.resource.data.get('mrk', ''), 40)
+        && shortStr(request.resource.data.get('war', ''), 40) && shortStr(request.resource.data.get('loc', ''), 160)
+        && shortStr(request.resource.data.get('ps', ''), 80) && shortStr(request.resource.data.get('pm', ''), 80);
+    }
+    match /lists/main/photos/{id} {
+      allow read, delete: if isMember();
+      allow create, update: if isMember()
+        && request.resource.data.keys().hasOnly(['d'])
+        && request.resource.data.d is string
+        && request.resource.data.d.matches('data:image/(jpeg|png|webp);base64,.*')
+        && request.resource.data.d.size() < 1000000;
+    }
+
+    // כל השאר חסום.
+    match /{document=**} { allow read, write: if false; }
+  }
+}
